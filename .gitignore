@@ -1,0 +1,8 @@
+completions/*
+!completions/*gitx*
+
+functions/*
+!functions/*gitx*conf.d/
+
+config.fish
+fish_variables
