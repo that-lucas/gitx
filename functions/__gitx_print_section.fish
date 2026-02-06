@@ -28,7 +28,7 @@ function __gitx_print_section --description 'Print a named section with colored 
         set_color normal
     else if test (count $argv) -eq 1
         set_color $value_color
-        printf "%s\n" $argv[1]
+        printf "%s\n" "$argv[1]"
         set_color normal
     else
         # Multiple items - show count in color, then list

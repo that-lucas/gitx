@@ -45,7 +45,7 @@ function __gitx_print_summary --description 'Print standardized summary key/valu
         # Print value in appropriate color
         if test -n "$value"
             set_color $value_color
-            printf '%s\n' $value
+            printf '%s\n' "$value"
             set_color normal
         else
             echo
