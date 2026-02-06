@@ -1,0 +1,35 @@
+complete -c gitx-track -d 'Unignore path chain in exclude and stage file(s)'
+complete -c gitx-track -l dry-run -d 'Show exact exclude entries and git add commands'
+
+function __gitx_track_needs_profile
+    set -l words (commandline -opc)
+    set -e words[1]
+
+    set -l positional
+    for w in $words
+        switch $w
+            case --dry-run
+                continue
+            case '-*'
+                continue
+            case '*'
+                set positional $positional $w
+        end
+    end
+
+    if test (count $positional) -eq 0
+        return 0
+    end
+
+    if test (count $positional) -eq 1
+        set -l current (commandline -ct)
+        if test -n "$current"
+            return 0
+        end
+    end
+
+    return 1
+end
+
+# First positional argument: profile name from ~/.gitx/profiles
+complete -c gitx-track -n '__gitx_track_needs_profile' -f -a '(for d in ~/.gitx/profiles/*; test -d "$d"; and basename "$d"; end)' -d 'Profile name'
