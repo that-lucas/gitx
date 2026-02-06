@@ -1,6 +1,6 @@
-function gitx-untrack --description 'Untrack files from ~/.gitx bare profile and safely prune auto-unignore entries'
+function gitx-untrack --description 'Untrack files from ~/.gitx bare repo and safely prune auto-unignore entries'
     if test (count $argv) -lt 2
-        echo "Usage: gitx-untrack [--dry-run] <profile> <file> [file ...]" >&2
+        echo "Usage: gitx-untrack [--dry-run] <repo> <file> [file ...]" >&2
         return 1
     end
 
@@ -15,16 +15,16 @@ function gitx-untrack --description 'Untrack files from ~/.gitx bare profile and
     end
 
     if test (count $args) -lt 2
-        echo "Usage: gitx-untrack [--dry-run] <profile> <file> [file ...]" >&2
+        echo "Usage: gitx-untrack [--dry-run] <repo> <file> [file ...]" >&2
         return 1
     end
 
-    set -l profile $args[1]
-    set -l repo "$HOME/.gitx/profiles/$profile/repo"
+    set -l repo_name $args[1]
+    set -l repo "$HOME/.gitx/repos/$repo_name/repo"
     set -l exclude "$repo/info/exclude"
 
     if not test -d "$repo"
-        echo "gitx-untrack: profile repo not found: $repo" >&2
+        echo "gitx-untrack: repo not found: $repo" >&2
         return 1
     end
 
@@ -70,7 +70,7 @@ function gitx-untrack --description 'Untrack files from ~/.gitx bare profile and
     end
 
     if test $dry_run -eq 0
-        command $rm_cmd
+        command $rm_cmd >/dev/null 2>/dev/null
         or begin
             echo "gitx-untrack: git rm --cached failed" >&2
             return 1
@@ -85,19 +85,25 @@ function gitx-untrack --description 'Untrack files from ~/.gitx bare profile and
                 set dry_targets $dry_targets "/$p"
             end
             set -l dry_cmds (string join -- ' ' (string escape -- $rm_cmd))
-            echo "Dry Run Plan: gitx-untrack $profile"
-            echo
+            __gitx_print_mode "Dry-run mode"
             __gitx_print_section "Would untrack paths" $dry_targets
             __gitx_print_section "Would remove exclude entries" "(exclude file missing: $exclude)"
-            __gitx_print_section "Would run commands" $dry_cmds
-            echo "Summary: untrack_paths="(count $to_untrack)", exclude_entries_removed=0, commands="(count $dry_cmds)
+            __gitx_print_section "Would run" $dry_cmds
+            __gitx_print_summary \
+                "Repo" "$repo_name" \
+                "Commands" (count $dry_cmds) \
+                "  Untrack paths" (count $to_untrack) \
+                "  Exclude entries removed" "0"
         else
-            echo "Untrack Result: gitx-untrack $profile"
-            echo
+            __gitx_print_mode "Untrack result"
             __gitx_print_section "Untracked paths" $run_targets
             __gitx_print_section "Exclude updates" "(exclude file missing: $exclude)"
-            __gitx_print_section "Commands run" $run_cmds
-            echo "Summary: untrack_paths="(count $to_untrack)", exclude_entries_removed=0, commands="(count $run_cmds)
+            __gitx_print_section "Ran" $run_cmds
+            __gitx_print_summary \
+                "Repo" "$repo_name" \
+                "Commands" (count $run_cmds) \
+                "  Untrack paths" (count $to_untrack) \
+                "  Exclude entries removed" "0"
         end
         return 0
     end
@@ -202,22 +208,28 @@ function gitx-untrack --description 'Untrack files from ~/.gitx bare profile and
             set dry_cmds $dry_cmds "rewrite $exclude (without removed entries)"
         end
 
-        echo "Dry Run Plan: gitx-untrack $profile"
-        echo
+        __gitx_print_mode "Dry-run mode"
         __gitx_print_section "Would untrack paths" $dry_targets
         __gitx_print_section "Would remove exclude entries" $remove_entries
-        __gitx_print_section "Would run commands" $dry_cmds
-        echo "Summary: untrack_paths="(count $to_untrack)", exclude_entries_removed="(count $remove_entries)", commands="(count $dry_cmds)
+        __gitx_print_section "Would run" $dry_cmds
+        __gitx_print_summary \
+            "Repo" "$repo_name" \
+            "Commands" (count $dry_cmds) \
+            "  Untrack paths" (count $to_untrack) \
+            "  Exclude entries removed" (count $remove_entries)
         return 0
     end
 
     if test (count $remove_entries) -eq 0
-        echo "Untrack Result: gitx-untrack $profile"
-        echo
+        __gitx_print_mode "Untrack result"
         __gitx_print_section "Untracked paths" $run_targets
         __gitx_print_section "Exclude entries removed" "(none)"
-        __gitx_print_section "Commands run" $run_cmds
-        echo "Summary: untrack_paths="(count $to_untrack)", exclude_entries_removed=0, commands="(count $run_cmds)
+        __gitx_print_section "Ran" $run_cmds
+        __gitx_print_summary \
+            "Repo" "$repo_name" \
+            "Commands" (count $run_cmds) \
+            "  Untrack paths" (count $to_untrack) \
+            "  Exclude entries removed" "0"
         return 0
     end
 
@@ -246,12 +258,14 @@ function gitx-untrack --description 'Untrack files from ~/.gitx bare profile and
     end
     set run_cmds $run_cmds "rewrite $exclude (without removed entries)"
 
-    echo "Untrack Result: gitx-untrack $profile"
-    echo
+    __gitx_print_mode "Untrack result"
     __gitx_print_section "Untracked paths" $run_targets
     __gitx_print_section "Exclude entries removed" $remove_entries
-    __gitx_print_section "Commands run" $run_cmds
-    echo "Summary: untrack_paths="(count $to_untrack)", exclude_entries_removed="(count $remove_entries)", commands="(count $run_cmds)
-    echo
-    __gitx_print_section "Next step" "gitx $profile commit -m \"untrack files\""
+    __gitx_print_section "Ran" $run_cmds
+    __gitx_print_summary \
+        "Repo" "$repo_name" \
+        "Commands" (count $run_cmds) \
+        "  Untrack paths" (count $to_untrack) \
+        "  Exclude entries removed" (count $remove_entries)
+    __gitx_print_section "Next step" "gitx-commit $repo_name"
 end
