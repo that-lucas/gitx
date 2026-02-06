@@ -26,7 +26,7 @@ function __gitx_print_summary --description 'Print standardized summary key/valu
             set value_color green
         else if string match -q -r '^(no|0|false|failed?)$' -- $value
             set value_color red
-        else if string match -q -r '^\d+$' -- $value
+        else if string match -q -r '^[0-9]+$' -- $value
             # Numbers with specific meanings
             if test $value -gt 0
                 if string match -q -r -i "fail|error" -- $key

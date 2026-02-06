@@ -21,7 +21,7 @@ function __gitx_print_section --description 'Print a named section with 4-space-
     set -l filtered_items
     for item in $argv
         # Skip items that look like "File: /path", "Contents:", or are just whitespace
-        if string match -q -r "^\s*(File:|Contents:)\s*\$" -- $item
+        if string match -q -r '^\s*(File:|Contents:)\s*$' -- $item
             continue
         end
         # Skip items that start with these patterns
@@ -77,7 +77,10 @@ function __gitx_print_section --description 'Print a named section with 4-space-
         echo (count $filtered_items)
         set_color normal
         # Only show first 3 items to keep output clean
-        set -l show_count (math "min("(count $filtered_items)", 3)")
+        set -l show_count 3
+        if test (count $filtered_items) -lt 3
+            set show_count (count $filtered_items)
+        end
         for i in (seq 1 $show_count)
             set_color brblack
             echo -n "  • "
@@ -88,7 +91,7 @@ function __gitx_print_section --description 'Print a named section with 4-space-
         # Show ellipsis if there are more items
         if test (count $filtered_items) -gt 3
             set_color brblack
-            printf "  ... and %d more\n" (math (count $filtered_items)" - 3")
+            printf "  ... and %d more\n" (math (count $filtered_items) - 3)
             set_color normal
         end
     end
