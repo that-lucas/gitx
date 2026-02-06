@@ -1,6 +1,6 @@
-function gitx-init --description 'Initialize ~/.gitx/profiles/<profile>/repo as bare repo with ignore-all exclude'
+function gitx-init --description 'Initialize ~/.gitx/repos/<repo>/repo as bare repo with ignore-all exclude'
     if test (count $argv) -lt 1
-        echo "Usage: gitx-init [--dry-run] <profile> [remote-url]" >&2
+        echo "Usage: gitx-init [--dry-run] <repo> [remote-url]" >&2
         return 1
     end
 
@@ -15,17 +15,17 @@ function gitx-init --description 'Initialize ~/.gitx/profiles/<profile>/repo as 
     end
 
     if test (count $args) -lt 1
-        echo "Usage: gitx-init [--dry-run] <profile> [remote-url]" >&2
+        echo "Usage: gitx-init [--dry-run] <repo> [remote-url]" >&2
         return 1
     end
 
-    set -l profile $args[1]
+    set -l repo_name $args[1]
     set -l remote_url
     if test (count $args) -ge 2
         set remote_url $args[2]
     end
 
-    set -l base "$HOME/.gitx/profiles/$profile"
+    set -l base "$HOME/.gitx/repos/$repo_name"
     set -l repo "$base/repo"
     set -l info_dir "$repo/info"
     set -l exclude "$repo/info/exclude"
@@ -50,7 +50,7 @@ function gitx-init --description 'Initialize ~/.gitx/profiles/<profile>/repo as 
         if test $dry_run -eq 1
             set dry_cmds $dry_cmds (string join -- ' ' (string escape -- $init_cmd))
         else
-            command $init_cmd
+            command $init_cmd >/dev/null 2>/dev/null
             or begin
                 echo "gitx-init: failed to initialize bare repo: $repo" >&2
                 return 1
@@ -81,22 +81,20 @@ function gitx-init --description 'Initialize ~/.gitx/profiles/<profile>/repo as 
             else
                 set dry_exclude $dry_exclude "write: $exclude"
             end
-            set dry_exclude $dry_exclude "# Ignore everything by default (work-tree is /)"
             set dry_exclude $dry_exclude "/*"
         else
             if test -f "$exclude"
                 if test -s "$exclude"
-                    printf "\n# Ignore everything by default (work-tree is /)\n/*\n" >> "$exclude"
+                    printf "\n/*\n" >> "$exclude"
                     set run_exclude $run_exclude "append: $exclude"
                 else
-                    printf "# Ignore everything by default (work-tree is /)\n/*\n" > "$exclude"
+                    printf "/*\n" > "$exclude"
                     set run_exclude $run_exclude "write: $exclude"
                 end
             else
-                printf "# Ignore everything by default (work-tree is /)\n/*\n" > "$exclude"
+                printf "/*\n" > "$exclude"
                 set run_exclude $run_exclude "write: $exclude"
             end
-            set run_exclude $run_exclude "# Ignore everything by default (work-tree is /)"
             set run_exclude $run_exclude "/*"
         end
     end
@@ -111,7 +109,7 @@ function gitx-init --description 'Initialize ~/.gitx/profiles/<profile>/repo as 
             set dry_config $dry_config "remote.origin.url = $remote_url"
             set dry_config $dry_config "remote.origin.fetch = +refs/heads/*:refs/remotes/origin/*"
         else
-            command $cfg_url_cmd
+            command $cfg_url_cmd >/dev/null 2>/dev/null
             or begin
                 echo "gitx-init: failed to set remote.origin.url" >&2
                 return 1
@@ -119,7 +117,7 @@ function gitx-init --description 'Initialize ~/.gitx/profiles/<profile>/repo as 
             set run_cmds $run_cmds (string join -- ' ' (string escape -- $cfg_url_cmd))
             set run_config $run_config "remote.origin.url = $remote_url"
 
-            command $cfg_fetch_cmd
+            command $cfg_fetch_cmd >/dev/null 2>/dev/null
             or begin
                 echo "gitx-init: failed to set remote.origin.fetch" >&2
                 return 1
@@ -134,7 +132,7 @@ function gitx-init --description 'Initialize ~/.gitx/profiles/<profile>/repo as 
         set dry_cmds $dry_cmds (string join -- ' ' (string escape -- $cfg_status_cmd))
         set dry_config $dry_config "status.showUntrackedFiles = no"
     else
-        command $cfg_status_cmd
+        command $cfg_status_cmd >/dev/null 2>/dev/null
         or begin
             echo "gitx-init: failed to set status.showUntrackedFiles=no" >&2
             return 1
@@ -144,30 +142,66 @@ function gitx-init --description 'Initialize ~/.gitx/profiles/<profile>/repo as 
     end
 
     if test $dry_run -eq 1
-        echo "Dry Run Plan: gitx-init $profile"
-        echo
-        __gitx_print_section "Would run commands" $dry_cmds
-        __gitx_print_section "Would write/append exclude" $dry_exclude
-        __gitx_print_section "Would set git config" $dry_config
-        echo "Summary: commands="(count $dry_cmds)", exclude_changes="(count $dry_exclude)", config_entries="(count $dry_config)
-        echo
-        echo "  repo: $repo"
-        echo "  exclude: $exclude"
-        if test -n "$remote_url"
-            echo "  remote: $remote_url"
+        set -l dry_exclude_section "Would update exclude list"
+        set -l dry_exclude_lines
+        if contains -- "write: $exclude" $dry_exclude
+            set dry_exclude_section "Would create exclude list"
         end
+        if contains -- "append: $exclude" $dry_exclude
+            set dry_exclude_section "Would update exclude list"
+        end
+        if test (count $dry_exclude) -gt 0
+            set dry_exclude_lines "File: $exclude"
+            set dry_exclude_lines $dry_exclude_lines "Contents:"
+            for line in $dry_exclude
+                if string match -rq '^(write|append): ' -- "$line"
+                    continue
+                end
+                set dry_exclude_lines $dry_exclude_lines "  $line"
+            end
+        end
+
+        __gitx_print_mode "Dry-run mode"
+        __gitx_print_section "Would run" $dry_cmds
+        __gitx_print_section "$dry_exclude_section" $dry_exclude_lines
+        __gitx_print_section "Would set git config" $dry_config
+        set -l summary_args "Repo" "$repo"
+        if test -n "$remote_url"
+            set summary_args $summary_args "Remote" "$remote_url"
+        end
+        set summary_args $summary_args \
+            "Commands" (count $dry_cmds) \
+            "  Exclude changes" (count $dry_exclude) \
+            "  Config changes" (count $dry_config)
+        __gitx_print_summary $summary_args
         return 0
     end
 
-    echo "Init Result: gitx-init $profile"
-    echo
-    __gitx_print_section "Commands run" $run_cmds
-    __gitx_print_section "Exclude updates" $run_exclude
-    __gitx_print_section "Git config updates" $run_config
-    echo "Summary: commands="(count $run_cmds)", exclude_changes="(count $run_exclude)", config_entries="(count $run_config)
-    echo
-    __gitx_print_section "Resolved paths" "repo: $repo" "exclude: $exclude"
-    if test -n "$remote_url"
-        __gitx_print_section "Remote" "$remote_url"
+    set -l run_exclude_lines
+    if test (count $run_exclude) -gt 0
+        set run_exclude_lines "File: $exclude"
+        set run_exclude_lines $run_exclude_lines "Contents:"
+        for line in $run_exclude
+            if string match -rq '^(write|append): ' -- "$line"
+                continue
+            end
+            set run_exclude_lines $run_exclude_lines "  $line"
+        end
     end
+
+    __gitx_print_mode "Init result"
+    __gitx_print_section "Ran" $run_cmds
+    __gitx_print_section "Exclude changes" $run_exclude_lines
+    __gitx_print_section "Git config set" $run_config
+    set -l summary_args "Repo" "$repo"
+    if test -n "$remote_url"
+        set summary_args $summary_args "Remote" "$remote_url"
+    end
+    set summary_args $summary_args \
+        "Commands" (count $run_cmds) \
+        "  Exclude changes" (count $run_exclude) \
+        "  Config changes" (count $run_config)
+
+    __gitx_print_summary $summary_args
+    __gitx_print_section "Next step" "gitx-track $repo_name <glob> [<glob-n>]"
 end

@@ -1,40 +1,40 @@
-function gitx --description 'Run git for one profile or all ~/.gitx/profiles when profile is omitted'
-    set -l profiles_dir "$HOME/.gitx/profiles"
+function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo is omitted'
+    set -l repos_dir "$HOME/.gitx/repos"
 
     if test (count $argv) -lt 1
         echo "Usage:" >&2
-        echo "  gitx <profile> <git args...>     # single profile" >&2
-        echo "  gitx <git args...>               # all profiles" >&2
+        echo "  gitx <repo> <git args...>     # single repo" >&2
+        echo "  gitx <git args...>               # all repos" >&2
 
-        if test -d "$profiles_dir"
+        if test -d "$repos_dir"
             set -l names
-            for d in "$profiles_dir"/*
+            for d in "$repos_dir"/*
                 if test -d "$d"
                     set names $names (basename "$d")
                 end
             end
             if test (count $names) -gt 0
-                echo "Available profiles:" >&2
+                echo "Available repos:" >&2
                 for name in $names
                     echo "  $name" >&2
                 end
             else
-                echo "No profiles found in $profiles_dir" >&2
+                echo "No repos found in $repos_dir" >&2
             end
         else
-            echo "Profiles directory not found: $profiles_dir" >&2
+            echo "Repos directory not found: $repos_dir" >&2
         end
 
         return 1
     end
 
     set -l first $argv[1]
-    set -l maybe_repo "$profiles_dir/$first/repo"
+    set -l maybe_repo "$repos_dir/$first/repo"
 
-    # Single-profile mode wins if first argument matches an existing profile.
+    # Single-repo mode wins if first argument matches an existing repo.
     if test -d "$maybe_repo"
         if test (count $argv) -lt 2
-            echo "Usage: gitx <profile> <git args...>" >&2
+            echo "Usage: gitx <repo> <git args...>" >&2
             return 1
         end
 
@@ -51,29 +51,33 @@ function gitx --description 'Run git for one profile or all ~/.gitx/profiles whe
             end
         end
 
-        echo "Gitx Result: profile $first"
-        echo
-        __gitx_print_section "Command" (string join -- ' ' (string escape -- $single_cmd))
+        __gitx_print_mode "Gitx result"
+        __gitx_print_section "Repo" "$first"
+        __gitx_print_section "Ran" (string join -- ' ' (string escape -- $single_cmd))
         __gitx_print_section "Output" $out_lines
-        __gitx_print_section "Status" "exit_code=$rc"
-        echo "Summary: profiles=1, ok="(test $rc -eq 0; and echo 1; or echo 0)", noop=0, failed="(test $rc -eq 0; and echo 0; or echo 1)
+        __gitx_print_section "Status" "Exit code: $rc"
+        __gitx_print_summary \
+            "Repos" "1" \
+            "  Ok" (test $rc -eq 0; and echo 1; or echo 0) \
+            "  Noop" "0" \
+            "  Failed" (test $rc -eq 0; and echo 0; or echo 1)
         return $rc
     end
 
-    # All-profiles mode: treat full argv as raw git command.
-    set -l profiles
+    # All-repos mode: treat full argv as raw git command.
+    set -l repo_names
     set -l repos
-    if test -d "$profiles_dir"
-        for d in "$profiles_dir"/*
+    if test -d "$repos_dir"
+        for d in "$repos_dir"/*
             if test -d "$d/repo"
-                set profiles $profiles (basename "$d")
+                set repo_names $repo_names (basename "$d")
                 set repos $repos "$d/repo"
             end
         end
     end
 
-    if test (count $profiles) -eq 0
-        echo "gitx: no profiles with repo found in $profiles_dir" >&2
+    if test (count $repo_names) -eq 0
+        echo "gitx: no repos found in $repos_dir" >&2
         return 1
     end
 
@@ -82,17 +86,14 @@ function gitx --description 'Run git for one profile or all ~/.gitx/profiles whe
     set -l ok_count 0
     set -l noop_count 0
     set -l fail_count 0
-    set -l failed_profiles
+    set -l failed_repos
 
-    for i in (seq 1 (count $profiles))
-        set -l profile $profiles[$i]
+    for i in (seq 1 (count $repo_names))
+        set -l repo_name $repo_names[$i]
         set -l repo $repos[$i]
 
-        set -l profile_cmd git -C / --git-dir="$repo" --work-tree=/ $argv
-        echo "Gitx Result: profile $profile"
-        echo
-
-        set -l output (command $profile_cmd 2>&1 | string collect)
+        set -l repo_cmd git -C / --git-dir="$repo" --work-tree=/ $argv
+        set -l output (command $repo_cmd 2>&1 | string collect)
         set -l rc $status
 
         set -l out_lines
@@ -119,29 +120,34 @@ function gitx --description 'Run git for one profile or all ~/.gitx/profiles whe
             end
         end
 
-        set -l profile_status
+        set -l repo_status
         if test $rc -eq 0
             set ok_count (math $ok_count + 1)
-            set profile_status "status=ok"
+            set repo_status "ok"
         else if test $is_noop -eq 1
             set noop_count (math $noop_count + 1)
-            set profile_status "status=noop"
+            set repo_status "noop"
         else
             set fail_count (math $fail_count + 1)
-            set failed_profiles $failed_profiles "$profile"
-            set profile_status "status=failed"
-            set profile_status $profile_status "exit_code=$rc"
+            set failed_repos $failed_repos "$repo_name"
+            set repo_status "failed"
+            set repo_status $repo_status "Exit code: $rc"
         end
 
-        __gitx_print_section "Command" (string join -- ' ' (string escape -- $profile_cmd))
+        __gitx_print_mode "Gitx result"
+        __gitx_print_section "Repo" "$repo_name"
+        __gitx_print_section "Ran" (string join -- ' ' (string escape -- $repo_cmd))
         __gitx_print_section "Output" $out_lines
-        __gitx_print_section "Status" $profile_status
-        echo
+        __gitx_print_section "Status" $repo_status
     end
 
-    echo "Summary: profiles="(count $profiles)", ok=$ok_count, noop=$noop_count, failed=$fail_count"
+    __gitx_print_summary \
+        "Repos" (count $repo_names) \
+        "  Ok" "$ok_count" \
+        "  Noop" "$noop_count" \
+        "  Failed" "$fail_count"
     if test $fail_count -gt 0
-        echo "Failed profiles: "(string join ', ' $failed_profiles)
+        __gitx_print_section "Failed repos" (string join ', ' $failed_repos)
         return 1
     end
 
