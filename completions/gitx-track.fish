@@ -1,7 +1,7 @@
 complete -c gitx-track -d 'Unignore path chain in exclude and stage file(s)'
 complete -c gitx-track -l dry-run -d 'Show exact exclude entries and git add commands'
 
-function __gitx_track_needs_profile
+function __gitx_track_needs_repo
     set -l words (commandline -opc)
     set -e words[1]
 
@@ -31,5 +31,5 @@ function __gitx_track_needs_profile
     return 1
 end
 
-# First positional argument: profile name from ~/.gitx/profiles
-complete -c gitx-track -n '__gitx_track_needs_profile' -f -a '(for d in ~/.gitx/profiles/*; test -d "$d"; and basename "$d"; end)' -d 'Profile name'
+# First positional argument: repo name from ~/.gitx/repos
+complete -c gitx-track -n '__gitx_track_needs_repo' -f -a '(for d in ~/.gitx/repos/*; test -d "$d"; and basename "$d"; end)' -d 'Repo name'

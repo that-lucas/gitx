@@ -1,6 +1,6 @@
-complete -c gitx -d 'Run git with --git-dir ~/.gitx/profiles/<profile>/repo and --work-tree=/'
+complete -c gitx -d 'Run git with --git-dir ~/.gitx/repos/<repo>/repo and --work-tree=/'
 
-function __gitx_needs_profile
+function __gitx_needs_repo
     set -l words (commandline -opc)
     set -e words[1]
 
@@ -18,4 +18,4 @@ function __gitx_needs_profile
     return 1
 end
 
-complete -c gitx -n '__gitx_needs_profile' -f -a '(for d in ~/.gitx/profiles/*; test -d "$d"; and basename "$d"; end)' -d 'Profile name'
+complete -c gitx -n '__gitx_needs_repo' -f -a '(for d in ~/.gitx/repos/*; test -d "$d"; and basename "$d"; end)' -d 'Repo name'
