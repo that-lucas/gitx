@@ -2,7 +2,7 @@ complete -c gitx-commit -d 'Commit staged changes (default message: local date/t
 complete -c gitx-commit -s n -l dry-run -d 'Show exact commit command and staged files'
 complete -c gitx-commit -s m -l message -r -d 'Commit message'
 
-function __gitx_commit_needs_profile
+function __gitx_commit_needs_repo
     set -l words (commandline -opc)
     set -e words[1]
 
@@ -29,7 +29,7 @@ function __gitx_commit_needs_profile
     end
 
     # If message option was provided but its value isn't complete yet,
-    # do not suggest profile names.
+    # do not suggest repo names.
     if test $expecting_message -eq 1
         return 1
     end
@@ -48,4 +48,4 @@ function __gitx_commit_needs_profile
     return 1
 end
 
-complete -c gitx-commit -n '__gitx_commit_needs_profile' -f -a '(for d in ~/.gitx/profiles/*; test -d "$d"; and basename "$d"; end)' -d 'Profile name'
+complete -c gitx-commit -n '__gitx_commit_needs_repo' -f -a '(for d in ~/.gitx/repos/*; test -d "$d"; and basename "$d"; end)' -d 'Repo name'
