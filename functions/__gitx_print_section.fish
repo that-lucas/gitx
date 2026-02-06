@@ -77,11 +77,7 @@ function __gitx_print_section --description 'Print a named section with 4-space-
         echo (count $filtered_items)
         set_color normal
         # Only show first 3 items to keep output clean
-        set -l show_count 3
-        if test (count $filtered_items) -lt 3
-            set show_count (count $filtered_items)
-        end
-        for i in (seq 1 $show_count)
+        for i in (seq 1 3)
             set_color brblack
             echo -n "  • "
             set_color $item_color
