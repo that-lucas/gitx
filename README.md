@@ -49,7 +49,7 @@ Other platforms/installation methods: [github.com/fish-shell/fish-shell](https:/
 git clone git@github.com:that-lucas/gitx.git # or HTTPS
 # git clone https://github.com/that-lucas/gitx
 
-cp gitx/functions/*.fish ~/.config/fish/functions/
+cp gitx/functions/*.fish   ~/.config/fish/functions/
 cp gitx/completions/*.fish ~/.config/fish/completions/
 
 source ~/.config/fish/config.fish
@@ -76,12 +76,12 @@ Dry run shows you exactly what will happen if you run the same command without t
 ### Command summary
 
 ```sh
-gitx-init    --dry-run <repo> [remote-url]                      # Create/setup repo
-gitx-track   --dry-run <repo> <file-or-glob> [file-or-glob ...] # Start tracking files
-gitx-untrack --dry-run <repo> <file-or-glob> [file-or-glob ...] # Stop tracking files
-gitx-commit  --dry-run <repo> [-m "<message>"]                  # Commit tracked changes
-gitx                   <repo> <git args...>                     # Run raw git command for one repo
-gitx                          <git args...>                     # Run raw git command across all repos
+gitx-init    --dry-run <repo> [remote-url]     # Create/setup repo
+gitx-track   --dry-run <repo> <glob> [glob-n]  # Start tracking files
+gitx-untrack --dry-run <repo> <glob> [glob-n]  # Stop tracking files
+gitx-commit  --dry-run <repo> [-m "<message>"] # Commit tracked changes
+gitx                   <repo> <git-args...>    # Run raw git command for one repo
+gitx                          <git-args...>    # Run raw git command across all repos
 ```
 
 Remove `--dry-run` to actually execute the commands.
