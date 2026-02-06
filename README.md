@@ -71,14 +71,22 @@ source ~/.config/fish/config.fish
 
 ## Start with `--dry-run`
 
-Dry run is the easiest way to start. It shows you exactly what will happen if you run the same command without the flag.
+Dry run shows you exactly what will happen if you run the same command without the flag. It's a great way to get familiar with the commands and understand their effects.
 
-- `gitx-init --dry-run <repo> [remote-url]`
-- `gitx-track --dry-run <repo> <file-or-glob> [file-or-glob ...]`
-- `gitx-untrack --dry-run <repo> <file-or-glob> [file-or-glob ...]`
-- `gitx-commit --dry-run <repo> [-m "..."]`
+### Command summary
 
-There's auto-completion for repo names and for the `--dry-run` flag as well, just type the first dash and hit tab.
+```sh
+gitx-init    --dry-run <repo> [remote-url]                      # Create/setup repo
+gitx-track   --dry-run <repo> <file-or-glob> [file-or-glob ...] # Start tracking files
+gitx-untrack --dry-run <repo> <file-or-glob> [file-or-glob ...] # Stop tracking files
+gitx-commit  --dry-run <repo> [-m "<message>"]                  # Commit tracked changes
+gitx                   <repo> <git args...>                     # Run raw git command for one repo
+gitx                          <git args...>                     # Run raw git command across all repos
+```
+
+Remove `--dry-run` to actually execute the commands.
+
+There's auto-completion for repo names and for the `--dry-run` flag as well.
 
 ## Basic workflow
 
@@ -91,15 +99,15 @@ There's auto-completion for repo names and for the `--dry-run` flag as well, jus
 
 Create a GitHub repo with the `gh` CLI
 ```sh
-gh repo create user/configs --private
+gh repo create your-user/configs --private
 ```
 or manually at https://github.com/new, then
 
 ```sh
-gitx-init configs git@github.com:user/configs.git # Initialize gitx repo
-gitx-track configs ~/.gitconfig ~/.config/opencode/opencode.jsonc # Track a few files
-gitx-commit configs # Optional message [-m "Tracking local configs"] # Commit
-gitx configs push # Push
+gitx-init   configs git@github.com:your-user/configs.git           # Initialize configs repo
+gitx-track  configs ~/.gitconfig ~/.config/opencode/opencode.jsonc # Track a few files
+gitx-commit configs                                                # Optional message [-m "Tracking local configs"] # Commit
+gitx        configs push                                           # Push
 ```
 
 ## Globs
@@ -107,18 +115,9 @@ gitx configs push # Push
 You can pass multiple files at once, including shell globs that expand to files.
 
 ```sh
-gitx-track configs ~/**/*.env ~/**/*.env.*
+gitx-track  configs ~/**/*.env ~/**/*.env.*
 ```
-
-## Command summary
-
-- `gitx-init <repo> [remote-url]`: create/setup repo
-- `gitx-track <repo> <file-or-glob> [file-or-glob ...]`: start tracking files
-- `gitx-untrack <repo> <file-or-glob> [file-or-glob ...]`: stop tracking files
-- `gitx-commit <repo> [-m "<message>"]`: commit tracked changes
-- `gitx <repo> <git args...>`: run raw Git commands for one repo
-- `gitx <git args...>`: run raw Git command across all repos
 
 ## Autocomplete
 
-Fish completions are included for all `gitx` commands, including repo name completion from any repo you created with `gitx-init`.
+Fish completions are included for all `gitx` commands, including repo name completion from any repo you created with `gitx-init` and the `--dry-run` flag.
