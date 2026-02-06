@@ -3,7 +3,32 @@ function __gitx_print_mode --description 'Print leading blank line and mode/resu
         return 1
     end
 
+    set -l mode $argv[1]
+    
     echo
-    echo $argv[1]
+    # Use icons and bold text for modern CLI feel
+    if string match -q -r "Dry-run" -- $mode
+        set_color cyan
+        echo -n "◉ "
+        set_color --bold
+        echo $mode
+        set_color normal
+    else if string match -q -r -i "result|complete|success" -- $mode
+        set_color green
+        echo -n "✓ "
+        set_color --bold
+        echo $mode
+        set_color normal
+    else if string match -q -r -i "fail|error" -- $mode
+        set_color red
+        echo -n "✗ "
+        set_color --bold
+        echo $mode
+        set_color normal
+    else
+        set_color --bold
+        echo $mode
+        set_color normal
+    end
     echo
 end
