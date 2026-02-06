@@ -76,7 +76,7 @@ function __gitx_print_section --description 'Print a named section with 4-space-
         set_color $item_color
         echo (count $filtered_items)
         set_color normal
-        # Only show first 3 items to keep output clean
+        # We're in this branch because count > 3, so accessing indices 1-3 is safe
         for i in (seq 1 3)
             set_color brblack
             echo -n "  • "
