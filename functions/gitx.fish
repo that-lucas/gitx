@@ -51,16 +51,20 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
             end
         end
 
-        __gitx_print_mode "Gitx result"
+        if test $rc -eq 0
+            __gitx_print_mode "Success"
+        else
+            __gitx_print_mode "Failed"
+        end
+        
         __gitx_print_section "Repo" "$first"
-        __gitx_print_section "Ran" (string join -- ' ' (string escape -- $single_cmd))
-        __gitx_print_section "Output" $out_lines
-        __gitx_print_section "Status" "Exit code: $rc"
-        __gitx_print_summary \
-            "Repos" "1" \
-            "  Ok" (test $rc -eq 0; and echo 1; or echo 0) \
-            "  Noop" "0" \
-            "  Failed" (test $rc -eq 0; and echo 0; or echo 1)
+        
+        # Show output if not empty
+        if test -n "$output"
+            echo "$output"
+            echo
+        end
+        
         return $rc
     end
 
@@ -134,20 +138,32 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
             set repo_status $repo_status "Exit code: $rc"
         end
 
-        __gitx_print_mode "Gitx result"
-        __gitx_print_section "Repo" "$repo_name"
-        __gitx_print_section "Ran" (string join -- ' ' (string escape -- $repo_cmd))
-        __gitx_print_section "Output" $out_lines
-        __gitx_print_section "Status" $repo_status
+        # Print repo result inline
+        set_color brblack
+        printf "  %s: " "$repo_name"
+        set_color normal
+        
+        if test $rc -eq 0
+            set_color green
+            echo "✓"
+            set_color normal
+        else if test $is_noop -eq 1
+            echo "(no changes)"
+        else
+            set_color red
+            printf "✗ (exit %d)\n" $rc
+            set_color normal
+        end
     end
 
+    echo
     __gitx_print_summary \
-        "Repos" (count $repo_names) \
-        "  Ok" "$ok_count" \
-        "  Noop" "$noop_count" \
-        "  Failed" "$fail_count"
+        "Total repos" (count $repo_names) \
+        "Success" "$ok_count" \
+        "No changes" "$noop_count" \
+        "Failed" "$fail_count"
+    
     if test $fail_count -gt 0
-        __gitx_print_section "Failed repos" (string join ', ' $failed_repos)
         return 1
     end
 

@@ -209,27 +209,18 @@ function gitx-untrack --description 'Untrack files from ~/.gitx bare repo and sa
         end
 
         __gitx_print_mode "Dry-run mode"
-        __gitx_print_section "Would untrack paths" $dry_targets
-        __gitx_print_section "Would remove exclude entries" $remove_entries
-        __gitx_print_section "Would run" $dry_cmds
+        __gitx_print_section "Would untrack" $dry_targets
         __gitx_print_summary \
             "Repo" "$repo_name" \
-            "Commands" (count $dry_cmds) \
-            "  Untrack paths" (count $to_untrack) \
-            "  Exclude entries removed" (count $remove_entries)
+            "Items untracked" (count $to_untrack)
         return 0
     end
 
     if test (count $remove_entries) -eq 0
         __gitx_print_mode "Untrack result"
-        __gitx_print_section "Untracked paths" $run_targets
-        __gitx_print_section "Exclude entries removed" "(none)"
-        __gitx_print_section "Ran" $run_cmds
         __gitx_print_summary \
             "Repo" "$repo_name" \
-            "Commands" (count $run_cmds) \
-            "  Untrack paths" (count $to_untrack) \
-            "  Exclude entries removed" "0"
+            "Items untracked" (count $to_untrack)
         return 0
     end
 
@@ -259,13 +250,10 @@ function gitx-untrack --description 'Untrack files from ~/.gitx bare repo and sa
     set run_cmds $run_cmds "rewrite $exclude (without removed entries)"
 
     __gitx_print_mode "Untrack result"
-    __gitx_print_section "Untracked paths" $run_targets
-    __gitx_print_section "Exclude entries removed" $remove_entries
-    __gitx_print_section "Ran" $run_cmds
     __gitx_print_summary \
         "Repo" "$repo_name" \
-        "Commands" (count $run_cmds) \
-        "  Untrack paths" (count $to_untrack) \
-        "  Exclude entries removed" (count $remove_entries)
-    __gitx_print_section "Next step" "gitx-commit $repo_name"
+        "Items untracked" (count $to_untrack)
+    
+    echo "Next: gitx-commit $repo_name"
+    echo
 end

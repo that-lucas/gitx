@@ -67,25 +67,18 @@ function gitx-commit --description 'Commit staged changes for ~/.gitx repo with 
         end
 
         __gitx_print_mode "Dry-run mode"
-        __gitx_print_section "Would auto-stage modified tracked files" $dry_auto_files
-        __gitx_print_section "Would include staged files" $dry_files
-        __gitx_print_section "Commit" $dry_message
-        __gitx_print_section "Would run" $dry_cmds
+        __gitx_print_section "Message" "$message"
 
         if test $has_staged_status -eq 0
             __gitx_print_summary \
                 "Repo" "$repo_name" \
-                "Commands" (count $dry_cmds) \
-                "  Staged files" "0" \
-                "  Commit would run" "no"
+                "Files to commit" "0"
             return 1
         end
 
         __gitx_print_summary \
             "Repo" "$repo_name" \
-            "Commands" (count $dry_cmds) \
-            "  Staged files" (count $staged_files) \
-            "  Commit would run" "yes"
+            "Files to commit" (count $staged_files)
         return 0
     end
 
@@ -108,22 +101,9 @@ function gitx-commit --description 'Commit staged changes for ~/.gitx repo with 
 
     if test $has_staged_status -eq 0
         __gitx_print_mode "Commit result"
-        set -l run_auto_files
-        for f in $unstaged_files
-            set run_auto_files $run_auto_files "/$f"
-        end
-        __gitx_print_section "Auto-staged modified tracked files" $run_auto_files
-        __gitx_print_section "Staged files" "(none)"
-        __gitx_print_section "Commit" "Message: $message" "Note: nothing staged; commit not executed"
-        __gitx_print_section "Ran" \
-            (string join -- ' ' (string escape -- $auto_add_cmd)) \
-            (string join -- ' ' (string escape -- $check_cmd))
         __gitx_print_summary \
             "Repo" "$repo_name" \
-            "Commands" "2" \
-            "  Auto-staged candidates" (count $unstaged_files) \
-            "  Staged files" "0" \
-            "  Commit executed" "no"
+            "Files committed" "0"
         return 1
     end
 
@@ -143,18 +123,11 @@ function gitx-commit --description 'Commit staged changes for ~/.gitx repo with 
     end
 
     __gitx_print_mode "Commit result"
-    __gitx_print_section "Auto-staged modified tracked files" $run_auto_files
-    __gitx_print_section "Staged files" $run_files
-    __gitx_print_section "Commit message" "message: $message"
-    __gitx_print_section "Ran" \
-        (string join -- ' ' (string escape -- $auto_add_cmd)) \
-        (string join -- ' ' (string escape -- $check_cmd)) \
-        (string join -- ' ' (string escape -- $commit_cmd))
+    __gitx_print_section "Message" "$message"
     __gitx_print_summary \
         "Repo" "$repo_name" \
-        "Commands" "3" \
-        "  Auto-staged candidates" (count $unstaged_files) \
-        "  Staged files" (count $staged_files) \
-        "  Commit executed" "yes"
-    __gitx_print_section "Next step" "gitx $repo_name push"
+        "Files committed" (count $staged_files)
+    
+    echo "Next: gitx $repo_name push"
+    echo
 end

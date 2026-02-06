@@ -1,13 +1,8 @@
-function __gitx_print_summary --description 'Print standardized summary key/value lines'
+function __gitx_print_summary --description 'Print standardized summary key/value lines with colors'
     # Skip empty summaries
     if test (count $argv) -eq 0
         return 0
     end
-
-    set_color brblack
-    echo -n "─"
-    set_color normal
-    echo
 
     set -l i 1
     while test $i -le (count $argv)
@@ -21,18 +16,23 @@ function __gitx_print_summary --description 'Print standardized summary key/valu
         # Determine color for value based on context
         set -l value_color normal
         
-        # Check for success/failure indicators
-        if string match -q -r '^(yes|1|true|ok)$' -- $value
+        # Check for success/failure indicators (case-insensitive)
+        if string match -q -r -i '^(yes|1|true|ok)$' -- $value
             set value_color green
-        else if string match -q -r '^(no|0|false|fails?|failed)$' -- $value
+        else if string match -q -r -i '^(no|0|false|fail(ed|ure)?)$' -- $value
             set value_color red
         else if string match -q -r '^[0-9]+$' -- $value
             # Numbers with specific meanings
             if test $value -gt 0
                 if string match -q -r -i "fail|error" -- $key
                     set value_color red
-                else if string match -q -r -i "ok|success" -- $key
+                else if string match -q -r -i "track|stage|commit|ok|success" -- $key
                     set value_color green
+                end
+            else
+                # Zero can be bad in some contexts
+                if string match -q -r -i "track|stage|commit" -- $key
+                    set value_color red
                 end
             end
         end
@@ -45,7 +45,7 @@ function __gitx_print_summary --description 'Print standardized summary key/valu
         # Print value in appropriate color
         if test -n "$value"
             set_color $value_color
-            echo $value
+            printf '%s\n' $value
             set_color normal
         else
             echo

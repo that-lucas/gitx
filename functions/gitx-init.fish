@@ -142,66 +142,22 @@ function gitx-init --description 'Initialize ~/.gitx/repos/<repo>/repo as bare r
     end
 
     if test $dry_run -eq 1
-        set -l dry_exclude_section "Would update exclude list"
-        set -l dry_exclude_lines
-        if contains -- "write: $exclude" $dry_exclude
-            set dry_exclude_section "Would create exclude list"
-        end
-        if contains -- "append: $exclude" $dry_exclude
-            set dry_exclude_section "Would update exclude list"
-        end
-        if test (count $dry_exclude) -gt 0
-            set dry_exclude_lines "File: $exclude"
-            set dry_exclude_lines $dry_exclude_lines "Contents:"
-            for line in $dry_exclude
-                if string match -rq '^(write|append): ' -- "$line"
-                    continue
-                end
-                set dry_exclude_lines $dry_exclude_lines "  $line"
-            end
-        end
-
         __gitx_print_mode "Dry-run mode"
-        __gitx_print_section "Would run" $dry_cmds
-        __gitx_print_section "$dry_exclude_section" $dry_exclude_lines
-        __gitx_print_section "Would set git config" $dry_config
         set -l summary_args "Repo" "$repo"
         if test -n "$remote_url"
             set summary_args $summary_args "Remote" "$remote_url"
         end
-        set summary_args $summary_args \
-            "Commands" (count $dry_cmds) \
-            "  Exclude changes" (count $dry_exclude) \
-            "  Config changes" (count $dry_config)
         __gitx_print_summary $summary_args
         return 0
     end
 
-    set -l run_exclude_lines
-    if test (count $run_exclude) -gt 0
-        set run_exclude_lines "File: $exclude"
-        set run_exclude_lines $run_exclude_lines "Contents:"
-        for line in $run_exclude
-            if string match -rq '^(write|append): ' -- "$line"
-                continue
-            end
-            set run_exclude_lines $run_exclude_lines "  $line"
-        end
-    end
-
     __gitx_print_mode "Init result"
-    __gitx_print_section "Ran" $run_cmds
-    __gitx_print_section "Exclude changes" $run_exclude_lines
-    __gitx_print_section "Git config set" $run_config
     set -l summary_args "Repo" "$repo"
     if test -n "$remote_url"
         set summary_args $summary_args "Remote" "$remote_url"
     end
-    set summary_args $summary_args \
-        "Commands" (count $run_cmds) \
-        "  Exclude changes" (count $run_exclude) \
-        "  Config changes" (count $run_config)
-
     __gitx_print_summary $summary_args
-    __gitx_print_section "Next step" "gitx-track $repo_name <glob> [<glob-n>]"
+    
+    echo "Next: gitx-track $repo_name <glob> [<glob-n>]"
+    echo
 end
