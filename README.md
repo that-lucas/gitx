@@ -93,7 +93,7 @@ Create a GitHub repo with the `gh` CLI
 ```sh
 gh repo create user/configs --private
 ```
-or manually at https://github.com/new.
+or manually at https://github.com/new, then
 
 ```sh
 gitx-init configs git@github.com:user/configs.git # Initialize gitx repo
