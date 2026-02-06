@@ -11,6 +11,12 @@ function __gitx_print_section --description 'Print a named section with 4-space-
         return 0
     end
     
+    # For very technical sections, just show count, not details
+    set -l hide_details 0
+    if string match -q -r -i "would run|ran|output" -- $title
+        set hide_details 1
+    end
+    
     # Skip individual items that are just file paths or technical details
     set -l filtered_items
     for item in $argv
@@ -48,6 +54,19 @@ function __gitx_print_section --description 'Print a named section with 4-space-
         set item_color cyan
     end
 
+    # For technical sections, just show count
+    if test $hide_details -eq 1
+        set_color $item_color
+        printf "%d command" (count $filtered_items)
+        if test (count $filtered_items) -ne 1
+            echo -n "s"
+        end
+        echo " executed"
+        set_color normal
+        echo
+        return 0
+    end
+
     # Print items on the same line if few, otherwise show count and list
     if test (count $filtered_items) -le 3
         set_color $item_color
@@ -57,8 +76,8 @@ function __gitx_print_section --description 'Print a named section with 4-space-
         set_color $item_color
         echo (count $filtered_items)
         set_color normal
-        # Only show first 5 items to keep output clean
-        set -l show_count (math "min("(count $filtered_items)", 5)")
+        # Only show first 3 items to keep output clean
+        set -l show_count (math "min("(count $filtered_items)", 3)")
         for i in (seq 1 $show_count)
             set_color brblack
             echo -n "  • "
@@ -67,9 +86,9 @@ function __gitx_print_section --description 'Print a named section with 4-space-
             set_color normal
         end
         # Show ellipsis if there are more items
-        if test (count $filtered_items) -gt 5
+        if test (count $filtered_items) -gt 3
             set_color brblack
-            printf "  ... and %d more\n" (math (count $filtered_items)" - 5")
+            printf "  ... and %d more\n" (math (count $filtered_items)" - 3")
             set_color normal
         end
     end
