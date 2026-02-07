@@ -142,22 +142,9 @@ function gitx-init --description 'Initialize ~/.gitx/repos/<repo>/repo as bare r
     end
 
     if test $dry_run -eq 1
-        __gitx_print_mode "Dry-run mode"
-        set -l summary_args "Repo" "$repo"
-        if test -n "$remote_url"
-            set summary_args $summary_args "Remote" "$remote_url"
-        end
-        __gitx_print_summary $summary_args
+        __gitx_present_init 1 "$repo" "$remote_url" "$repo_name"
         return 0
     end
 
-    __gitx_print_mode "Init result"
-    set -l summary_args "Repo" "$repo"
-    if test -n "$remote_url"
-        set summary_args $summary_args "Remote" "$remote_url"
-    end
-    __gitx_print_summary $summary_args
-    
-    echo "Next: gitx-track $repo_name <glob> [<glob-n>]"
-    echo
+    __gitx_present_init 0 "$repo" "$remote_url" "$repo_name"
 end

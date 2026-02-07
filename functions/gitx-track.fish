@@ -177,11 +177,7 @@ function gitx-track --description 'Unignore and stage files into ~/.gitx/repos/<
     end
 
     if test $dry_run -eq 1
-        __gitx_print_mode "Dry-run mode"
-        __gitx_print_section "Would track" $dry_targets
-        __gitx_print_summary \
-            "Repo" "$repo_name" \
-            "Items tracked" (count $dry_targets)
+        __gitx_present_track 1 "$repo_name" (count $dry_targets)
         if test $tracked_count -eq 0
             return 1
         end
@@ -192,16 +188,5 @@ function gitx-track --description 'Unignore and stage files into ~/.gitx/repos/<
         return 1
     end
 
-    __gitx_print_mode "Track result"
-    __gitx_print_summary \
-        "Repo" "$repo_name" \
-        "Items tracked" "$tracked_count" \
-        "Items staged" "$staged_count"
-    
-    if test (count $run_skipped) -gt 0
-        __gitx_print_section "Skipped" $run_skipped
-    end
-    
-    echo "Next: gitx-commit $repo_name"
-    echo
+    __gitx_present_track 0 "$repo_name" "$tracked_count" "$staged_count" $run_skipped
 end

@@ -51,19 +51,12 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
             end
         end
 
+        set -l success 0
         if test $rc -eq 0
-            __gitx_print_mode "Success"
-        else
-            __gitx_print_mode "Failed"
+            set success 1
         end
         
-        __gitx_print_section "Repo" "$first"
-        
-        # Show output if not empty
-        if test -n "$output"
-            echo "$output"
-            echo
-        end
+        __gitx_present_passthrough $success "$first" "$output"
         
         return $rc
     end

@@ -66,19 +66,12 @@ function gitx-commit --description 'Commit staged changes for ~/.gitx repo with 
             set dry_message $dry_message "Note: no staged changes; commit would not run"
         end
 
-        __gitx_print_mode "Dry-run mode"
-        __gitx_print_section "Message" "$message"
-
         if test $has_staged_status -eq 0
-            __gitx_print_summary \
-                "Repo" "$repo_name" \
-                "Files to commit" "0"
+            __gitx_present_commit 1 "$repo_name" 0 "$message"
             return 1
         end
 
-        __gitx_print_summary \
-            "Repo" "$repo_name" \
-            "Files to commit" (count $staged_files)
+        __gitx_present_commit 1 "$repo_name" (count $staged_files) "$message"
         return 0
     end
 
@@ -100,10 +93,7 @@ function gitx-commit --description 'Commit staged changes for ~/.gitx repo with 
     end
 
     if test $has_staged_status -eq 0
-        __gitx_print_mode "Commit result"
-        __gitx_print_summary \
-            "Repo" "$repo_name" \
-            "Files committed" "0"
+        __gitx_present_commit 0 "$repo_name" 0 "$message"
         return 1
     end
 
@@ -122,12 +112,5 @@ function gitx-commit --description 'Commit staged changes for ~/.gitx repo with 
         return 1
     end
 
-    __gitx_print_mode "Commit result"
-    __gitx_print_section "Message" "$message"
-    __gitx_print_summary \
-        "Repo" "$repo_name" \
-        "Files committed" (count $staged_files)
-    
-    echo "Next: gitx $repo_name push"
-    echo
+    __gitx_present_commit 0 "$repo_name" (count $staged_files) "$message"
 end
