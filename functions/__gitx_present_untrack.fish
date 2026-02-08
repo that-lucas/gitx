@@ -34,6 +34,13 @@ function __gitx_present_untrack --description 'Presenter for gitx-untrack comman
     # Empty line before
     echo
     
+    # Display mode header for dry-run
+    if test $dry_run -eq 1
+        set_color cyan
+        printf "  Dry-run\n"
+        set_color normal
+    end
+    
     # Display icon and "Files untracked: {number}"
     set_color $result_color
     set_color --bold

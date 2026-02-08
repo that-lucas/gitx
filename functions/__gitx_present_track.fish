@@ -34,6 +34,13 @@ function __gitx_present_track --description 'Presenter for gitx-track command ou
     # Empty line before
     echo
     
+    # Display mode header for dry-run
+    if test $dry_run -eq 1
+        set_color cyan
+        printf "  Dry-run\n"
+        set_color normal
+    end
+    
     # Display icon and "Files tracked: {number}"
     set_color $result_color
     set_color --bold
