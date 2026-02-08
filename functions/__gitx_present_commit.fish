@@ -47,16 +47,13 @@ function __gitx_present_commit --description 'Presenter for gitx-commit command 
         set_color normal
     end
     
-    # Display icon and "Files to commit/committed: {number}"
+    # Display icon and "Files committed: {number}"
+    # Always use "Files committed" label - mode is indicated by Dry-run header and icon
     set_color $result_color
     set_color --bold
     printf $icon
     set_color normal
-    if test $dry_run -eq 1
-        printf "Files to commit: "
-    else
-        printf "Files committed: "
-    end
+    printf "Files committed: "
     set_color $result_color
     set_color --bold
     printf "%d\n" $items_count
@@ -73,11 +70,11 @@ function __gitx_present_commit --description 'Presenter for gitx-commit command 
         end
     end
     
-    # Empty line before message
-    echo
-    
-    # Display message
-    printf "Message: %s\n" "$commit_message"
+    # Display message (indented by 2 spaces, only when items_count > 0)
+    if test $items_count -gt 0
+        echo
+        printf "  Message: %s\n" "$commit_message"
+    end
     
     # Show next step only for actual commits with items_count > 0
     if test $dry_run -eq 0 -a $items_count -gt 0
