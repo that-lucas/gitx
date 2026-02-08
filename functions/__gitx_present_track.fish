@@ -58,16 +58,23 @@ function __gitx_present_track --description 'Presenter for gitx-track command ou
         set idx (math $idx + 1)
     end
     
-    # Determine icon and color based on dry_run and items_count
+    # Determine icon and color based on items_count and dry_run
+    # Zero items is always an error (even in dry-run)
     set -l icon "✓ "
     set -l result_color green
     
-    if test $dry_run -eq 1
+    if test $items_count -eq 0
+        # Failure: no files tracked
+        if test $dry_run -eq 1
+            set icon "◉ "  # Dry-run icon but with error color
+        else
+            set icon "✗ "  # Actual failure icon
+        end
+        set result_color red
+    else if test $dry_run -eq 1
+        # Success dry-run: neutral styling
         set icon "◉ "
         set result_color brblack
-    else if test $items_count -eq 0
-        set icon "✗ "
-        set result_color red
     end
     
     # Empty line before

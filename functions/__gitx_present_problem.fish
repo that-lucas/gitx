@@ -21,44 +21,45 @@ function __gitx_present_problem --description 'Presenter for runtime command err
         set details $argv[5..-1]
     end
 
-    echo
+    # All error output goes to stderr
+    echo >&2
 
     if test "$dry_run" = "1"
-        set_color cyan
-        printf "  Dry-run\n"
-        set_color normal
+        set_color cyan >&2
+        printf "  Dry-run\n" >&2
+        set_color normal >&2
     end
 
-    set_color red
-    set_color --bold
-    printf "✗ "
-    set_color normal
-    printf "%s\n" "$headline"
+    set_color red >&2
+    set_color --bold >&2
+    printf "✗ " >&2
+    set_color normal >&2
+    printf "%s\n" "$headline" >&2
 
-    printf "  Command: "
-    set_color red
-    set_color --bold
-    printf "%s\n" "$command_name"
-    set_color normal
+    printf "  Command: " >&2
+    set_color red >&2
+    set_color --bold >&2
+    printf "%s\n" "$command_name" >&2
+    set_color normal >&2
 
     if test -n "$repo_name" -a "$repo_name" != "-"
-        printf "  Repo: "
-        set_color red
-        set_color --bold
-        printf "%s\n" "$repo_name"
-        set_color normal
+        printf "  Repo: " >&2
+        set_color red >&2
+        set_color --bold >&2
+        printf "%s\n" "$repo_name" >&2
+        set_color normal >&2
     end
 
     if test (count $details) -gt 0
-        echo
-        printf "  Details:\n"
+        echo >&2
+        printf "  Details:\n" >&2
         for detail in $details
-            set_color red
-            set_color --bold
-            printf "    %s\n" "$detail"
-            set_color normal
+            set_color red >&2
+            set_color --bold >&2
+            printf "    %s\n" "$detail" >&2
+            set_color normal >&2
         end
     end
 
-    echo
+    echo >&2
 end
