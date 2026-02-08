@@ -32,11 +32,13 @@ function __gitx_present_init --description 'Presenter for gitx-init command outp
     end
 
     set_color $action_color
+    set_color --bold
     printf $icon
 
     set_color normal
     printf "Bare repo created at "
     set_color $action_color
+    set_color --bold
     printf "%s\n" "$repo_path"
     set_color normal
 
@@ -45,7 +47,9 @@ function __gitx_present_init --description 'Presenter for gitx-init command outp
     set_color cyan
     printf "gitx-track "
     set_color $action_color
+    set_color --bold
     printf $repo_name
+    set_color normal
     set_color cyan
     printf " <file-or-glob> [<file-or-glob> ...]\n"
     set_color normal
