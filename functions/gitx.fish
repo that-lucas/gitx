@@ -32,24 +32,17 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
         end
 
         set -l single_cmd git -C / --git-dir="$maybe_repo" --work-tree=/ $argv[2..-1]
-        set -l output (command $single_cmd 2>&1 | string collect)
+        __gitx_present_passthrough begin
+        __gitx_present_passthrough entry-start "$first"
+        command $single_cmd
         set -l rc $status
-
-        set -l out_lines
-        if test -n "$output"
-            for line in (string split \n -- "$output")
-                if test -n "$line"
-                    set out_lines $out_lines "$line"
-                end
-            end
-        end
 
         set -l success 0
         if test $rc -eq 0
             set success 1
         end
 
-        __gitx_present_passthrough 1 $success $first (count $out_lines) $out_lines
+        __gitx_present_passthrough entry-end $success "$first"
 
         return $rc
     end
@@ -72,24 +65,16 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
     end
 
     set -l any_failure 0
-    set -l passthrough_items (count $repo_names)
+    __gitx_present_passthrough begin
 
     for i in (seq 1 (count $repo_names))
         set -l repo_name $repo_names[$i]
         set -l repo $repos[$i]
 
         set -l repo_cmd git -C / --git-dir="$repo" --work-tree=/ $argv
-        set -l output (command $repo_cmd 2>&1 | string collect)
+        __gitx_present_passthrough entry-start "$repo_name"
+        command $repo_cmd
         set -l rc $status
-
-        set -l out_lines
-        if test -n "$output"
-            for line in (string split \n -- "$output")
-                if test -n "$line"
-                    set out_lines $out_lines "$line"
-                end
-            end
-        end
 
         set -l success 0
         if test $rc -eq 0
@@ -98,10 +83,8 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
             set any_failure 1
         end
 
-        set -a passthrough_items $success $repo_name (count $out_lines) $out_lines
+        __gitx_present_passthrough entry-end $success "$repo_name"
     end
-
-    __gitx_present_passthrough $passthrough_items
     
     if test $any_failure -eq 1
         return 1
