@@ -2,9 +2,8 @@ function __gitx_present_track --description 'Presenter for gitx-track command ou
     # Parameters:
     # $argv[1] - dry_run (1 or 0)
     # $argv[2] - repo_name
-    # $argv[3] - items_tracked (number)
-    # $argv[4] - items_staged (number, only for non-dry-run)
-    # $argv[5..] - skipped_items (optional list for non-dry-run)
+    # $argv[3] - items_count (number of files tracked)
+    # $argv[4..] - file_paths (list of tracked file paths)
     
     if test (count $argv) -lt 3
         echo "Error: __gitx_present_track requires at least 3 arguments" >&2
@@ -13,87 +12,65 @@ function __gitx_present_track --description 'Presenter for gitx-track command ou
     
     set -l dry_run $argv[1]
     set -l repo_name $argv[2]
-    set -l items_tracked $argv[3]
-    set -l items_staged 0
-    set -l skipped_items
+    set -l items_count $argv[3]
+    set -l file_paths
     
-    if test $dry_run -eq 0
-        if test (count $argv) -ge 4
-            set items_staged $argv[4]
-        end
-        if test (count $argv) -ge 5
-            set skipped_items $argv[5..-1]
-        end
+    if test (count $argv) -ge 4
+        set file_paths $argv[4..-1]
     end
     
-    # Display mode
+    # Determine icon and color based on dry_run and items_count
+    set -l icon "✓ "
+    set -l result_color green
+    
     if test $dry_run -eq 1
-        set_color cyan
-        printf "◉ "
-        set_color --bold
-        printf "Dry-run mode\n"
-        set_color normal
-    else
-        set_color green
-        printf "✓ "
-        set_color --bold
-        printf "Track result\n"
-        set_color normal
+        set icon "◉ "
+        set result_color brblack
+    else if test $items_count -eq 0
+        set icon "✗ "
+        set result_color red
     end
+    
+    # Empty line before
     echo
     
-    # Display repo
-    set_color brblack
-    printf "  Repo: "
+    # Display icon and "Files tracked: {number}"
+    set_color $result_color
+    set_color --bold
+    printf $icon
     set_color normal
-    printf "%s\n" "$repo_name"
-    
-    # Display items tracked (green if > 0, red if 0)
-    set_color brblack
-    printf "  Items tracked: "
-    set_color normal
-    if test $items_tracked -gt 0
-        set_color green
-    else
-        set_color red
-    end
-    printf "%d\n" $items_tracked
+    printf "Files tracked: "
+    set_color $result_color
+    set_color --bold
+    printf "%d\n" $items_count
     set_color normal
     
-    # Display items staged for non-dry-run
-    if test $dry_run -eq 0
-        set_color brblack
-        printf "  Items staged: "
-        set_color normal
-        if test $items_staged -gt 0
-            set_color green
-        else
-            set_color red
-        end
-        printf "%d\n" $items_staged
-        set_color normal
-    end
-    
-    echo
-    
-    # Show skipped items if any
-    if test $dry_run -eq 0 -a (count $skipped_items) -gt 0
-        set_color brblack
-        printf "Skipped: "
-        set_color normal
-        printf "%d\n" (count $skipped_items)
-        for item in $skipped_items
-            set_color brblack
-            printf "  • "
+    # Display file paths (indented, bold result_color)
+    if test $items_count -gt 0
+        for filepath in $file_paths
+            printf "    "
+            set_color $result_color
+            set_color --bold
+            printf "%s\n" "$filepath"
             set_color normal
-            printf "%s\n" "$item"
         end
-        echo
     end
     
-    # Show next step only for non-dry-run
-    if test $dry_run -eq 0
-        printf "Next: gitx-commit %s\n" "$repo_name"
+    # Show next step only if items_count > 0
+    if test $items_count -gt 0
         echo
+        printf "  Next: "
+        set_color cyan
+        printf "gitx-commit "
+        set_color $result_color
+        set_color --bold
+        printf "%s" "$repo_name"
+        set_color normal
+        set_color cyan
+        printf " [-m \"Message\"]\n"
+        set_color normal
     end
+    
+    # Empty line at end
+    echo
 end

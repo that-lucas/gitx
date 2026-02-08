@@ -177,7 +177,7 @@ function gitx-track --description 'Unignore and stage files into ~/.gitx/repos/<
     end
 
     if test $dry_run -eq 1
-        __gitx_present_track 1 "$repo_name" (count $dry_targets)
+        __gitx_present_track 1 "$repo_name" (count $dry_targets) $dry_targets
         if test $tracked_count -eq 0
             return 1
         end
@@ -188,5 +188,14 @@ function gitx-track --description 'Unignore and stage files into ~/.gitx/repos/<
         return 1
     end
 
-    __gitx_present_track 0 "$repo_name" "$tracked_count" "$staged_count" $run_skipped
+    # Combine run_staged and run_tracked_no_diff for display
+    set -l all_tracked_files
+    for f in $run_staged
+        set all_tracked_files $all_tracked_files $f
+    end
+    for f in $run_tracked_no_diff
+        set all_tracked_files $all_tracked_files $f
+    end
+
+    __gitx_present_track 0 "$repo_name" "$tracked_count" $all_tracked_files
 end
