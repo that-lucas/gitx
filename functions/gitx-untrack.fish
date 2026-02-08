@@ -79,31 +79,11 @@ function gitx-untrack --description 'Untrack files from ~/.gitx bare repo and sa
     end
 
     if not test -f "$exclude"
+        # Exclude file missing - just call presenter and return
         if test $dry_run -eq 1
-            set -l dry_targets
-            for p in $to_untrack
-                set dry_targets $dry_targets "/$p"
-            end
-            set -l dry_cmds (string join -- ' ' (string escape -- $rm_cmd))
-            __gitx_print_mode "Dry-run mode"
-            __gitx_print_section "Would untrack paths" $dry_targets
-            __gitx_print_section "Would remove exclude entries" "(exclude file missing: $exclude)"
-            __gitx_print_section "Would run" $dry_cmds
-            __gitx_print_summary \
-                "Repo" "$repo_name" \
-                "Commands" (count $dry_cmds) \
-                "  Untrack paths" (count $to_untrack) \
-                "  Exclude entries removed" "0"
+            __gitx_present_untrack 1 "$repo_name" (count $to_untrack) $removed_abs
         else
-            __gitx_print_mode "Untrack result"
-            __gitx_print_section "Untracked paths" $run_targets
-            __gitx_print_section "Exclude updates" "(exclude file missing: $exclude)"
-            __gitx_print_section "Ran" $run_cmds
-            __gitx_print_summary \
-                "Repo" "$repo_name" \
-                "Commands" (count $run_cmds) \
-                "  Untrack paths" (count $to_untrack) \
-                "  Exclude entries removed" "0"
+            __gitx_present_untrack 0 "$repo_name" (count $to_untrack) $removed_abs
         end
         return 0
     end

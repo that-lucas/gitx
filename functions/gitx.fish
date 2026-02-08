@@ -56,7 +56,7 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
             set success 1
         end
         
-        __gitx_present_passthrough $success "$first" "$output"
+        __gitx_present_passthrough $success $out_lines
         
         return $rc
     end

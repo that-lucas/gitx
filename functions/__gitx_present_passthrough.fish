@@ -1,44 +1,47 @@
 function __gitx_present_passthrough --description 'Presenter for gitx passthrough command output'
     # Parameters:
     # $argv[1] - success (1 for success, 0 for failure)
-    # $argv[2] - repo_name
-    # $argv[3] - output (raw command output)
+    # $argv[2..-1] - output lines (variadic)
     
-    if test (count $argv) -lt 3
-        echo "Error: __gitx_present_passthrough requires 3 arguments" >&2
+    if test (count $argv) -lt 1
+        echo "Error: __gitx_present_passthrough requires at least 1 argument" >&2
         return 1
     end
     
     set -l success $argv[1]
-    set -l repo_name $argv[2]
-    set -l output $argv[3]
+    set -l output_lines $argv[2..-1]
     
-    # Display mode based on success
+    # Determine icon and color based on success
+    set -l icon
+    set -l result_color
     if test $success -eq 1
-        set_color green
-        printf "✓ "
-        set_color --bold
-        printf "Success\n"
-        set_color normal
+        # Success: green checkmark
+        set icon "✓ "
+        set result_color green
     else
-        set_color red
-        printf "✗ "
-        set_color --bold
-        printf "Failed\n"
-        set_color normal
+        # Failure: red X
+        set icon "✗ "
+        set result_color red
     end
+    
+    # Empty line before output
     echo
     
-    # Display repo
-    set_color brblack
-    printf "Repo: "
+    # Display icon + label
+    set_color $result_color
+    printf "%s" "$icon"
     set_color normal
-    printf "%s\n" "$repo_name"
-    echo
+    printf "Output:\n"
     
-    # Display raw output if present
-    if test -n "$output"
-        printf "%s\n" "$output"
-        echo
+    # Display output lines indented
+    if test (count $output_lines) -gt 0
+        for line in $output_lines
+            set_color --bold $result_color
+            printf "    %s\n" "$line"
+            set_color normal
+        end
     end
+    
+    # Empty line after output
+    echo
 end
