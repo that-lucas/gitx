@@ -89,15 +89,23 @@ test-passthrough-presenter: setup-fish
 	@echo ""
 	@echo "5a. Passthrough - Success with output"
 	@echo "-------------------------------------"
-	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough 1 demo-repo "A  tmp/test1.txt" "A  tmp/test2.txt" "M  tmp/test3.txt"'
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough 1 1 demo-repo 3 "A  tmp/test1.txt" "A  tmp/test2.txt" "M  tmp/test3.txt"'
 	@echo ""
 	@echo "5b. Passthrough - Failure with error"
 	@echo "------------------------------------"
-	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough 0 demo-repo "git: '"'"'invalid-command'"'"' is not a git command. See '"'"'git --help'"'"'."'
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough 1 0 demo-repo 1 "git: '"'"'invalid-command'"'"' is not a git command. See '"'"'git --help'"'"'."'
 	@echo ""
 	@echo "5c. Passthrough - Success with no output"
 	@echo "----------------------------------------"
-	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough 1 demo-repo'
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough 1 1 demo-repo 0'
+	@echo ""
+	@echo "5d. Passthrough - Multiple repos (success)"
+	@echo "------------------------------------------"
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough 2 1 demo-repo 1 "A  tmp/test1.txt" 1 configs-repo 2 "M  .gitconfig" "M  .config/fish/config.fish"'
+	@echo ""
+	@echo "5e. Passthrough - Multiple repos (mixed results)"
+	@echo "------------------------------------------------"
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough 2 1 demo-repo 1 "A  tmp/test1.txt" 0 dotfiles 1 "fatal: unable to access '"'"'https://github.com/user/dotfiles.git/'"'"': Could not resolve host: github.com"'
 	@echo ""
 
 setup-fish:

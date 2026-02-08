@@ -55,9 +55,9 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
         if test $rc -eq 0
             set success 1
         end
-        
-        __gitx_present_passthrough $success $first $out_lines
-        
+
+        __gitx_present_passthrough 1 $success $first (count $out_lines) $out_lines
+
         return $rc
     end
 
@@ -79,6 +79,7 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
     end
 
     set -l any_failure 0
+    set -l passthrough_items (count $repo_names)
 
     for i in (seq 1 (count $repo_names))
         set -l repo_name $repo_names[$i]
@@ -103,9 +104,11 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
         else
             set any_failure 1
         end
-        
-        __gitx_present_passthrough $success $repo_name $out_lines
+
+        set -a passthrough_items $success $repo_name (count $out_lines) $out_lines
     end
+
+    __gitx_present_passthrough $passthrough_items
     
     if test $any_failure -eq 1
         return 1
