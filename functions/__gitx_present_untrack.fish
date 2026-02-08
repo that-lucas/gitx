@@ -2,56 +2,75 @@ function __gitx_present_untrack --description 'Presenter for gitx-untrack comman
     # Parameters:
     # $argv[1] - dry_run (1 or 0)
     # $argv[2] - repo_name
-    # $argv[3] - items_untracked (number)
+    # $argv[3] - items_count (number of files untracked)
+    # $argv[4..] - file_paths (list of untracked file paths)
     
     if test (count $argv) -lt 3
-        echo "Error: __gitx_present_untrack requires 3 arguments" >&2
+        echo "Error: __gitx_present_untrack requires at least 3 arguments" >&2
         return 1
     end
     
     set -l dry_run $argv[1]
     set -l repo_name $argv[2]
-    set -l items_untracked $argv[3]
+    set -l items_count $argv[3]
+    set -l file_paths
     
-    # Display mode
+    if test (count $argv) -ge 4
+        set file_paths $argv[4..-1]
+    end
+    
+    # Determine icon and color based on dry_run and items_count
+    set -l icon "✓ "
+    set -l result_color green
+    
     if test $dry_run -eq 1
-        set_color cyan
-        printf "◉ "
-        set_color --bold
-        printf "Dry-run mode\n"
-        set_color normal
-    else
-        set_color green
-        printf "✓ "
-        set_color --bold
-        printf "Untrack result\n"
-        set_color normal
+        set icon "◉ "
+        set result_color brblack
+    else if test $items_count -eq 0
+        set icon "✗ "
+        set result_color red
     end
+    
+    # Empty line before
     echo
     
-    # Display repo
-    set_color brblack
-    printf "  Repo: "
+    # Display icon and "Files untracked: {number}"
+    set_color $result_color
+    set_color --bold
+    printf $icon
     set_color normal
-    printf "%s\n" "$repo_name"
+    printf "Files untracked: "
+    set_color $result_color
+    set_color --bold
+    printf "%d\n" $items_count
+    set_color normal
     
-    # Display items untracked (green if > 0, red if 0)
-    set_color brblack
-    printf "  Items untracked: "
-    set_color normal
-    if test $items_untracked -gt 0
-        set_color green
-    else
-        set_color red
+    # Display file paths (indented, bold result_color)
+    if test $items_count -gt 0
+        for filepath in $file_paths
+            printf "    "
+            set_color $result_color
+            set_color --bold
+            printf "%s\n" "$filepath"
+            set_color normal
+        end
     end
-    printf "%d\n" $items_untracked
-    set_color normal
     
-    echo
-    
-    # Show next step only for non-dry-run
-    if test $dry_run -eq 0
-        printf "Next: gitx-commit %s\n" "$repo_name"
+    # Show next step only if items_count > 0
+    if test $items_count -gt 0
         echo
+        printf "  Next: "
+        set_color cyan
+        printf "gitx-commit "
+        set_color $result_color
+        set_color --bold
+        printf "%s" "$repo_name"
+        set_color normal
+        set_color cyan
+        printf " [-m \"Message\"]\n"
+        set_color normal
     end
+    
+    # Empty line at end
+    echo
 end

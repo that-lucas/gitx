@@ -208,12 +208,12 @@ function gitx-untrack --description 'Untrack files from ~/.gitx bare repo and sa
             set dry_cmds $dry_cmds "rewrite $exclude (without removed entries)"
         end
 
-        __gitx_present_untrack 1 "$repo_name" (count $to_untrack)
+        __gitx_present_untrack 1 "$repo_name" (count $to_untrack) $removed_abs
         return 0
     end
 
     if test (count $remove_entries) -eq 0
-        __gitx_present_untrack 0 "$repo_name" (count $to_untrack)
+        __gitx_present_untrack 0 "$repo_name" (count $to_untrack) $removed_abs
         return 0
     end
 
@@ -242,5 +242,5 @@ function gitx-untrack --description 'Untrack files from ~/.gitx bare repo and sa
     end
     set run_cmds $run_cmds "rewrite $exclude (without removed entries)"
 
-    __gitx_present_untrack 0 "$repo_name" (count $to_untrack)
+    __gitx_present_untrack 0 "$repo_name" (count $to_untrack) $removed_abs
 end
