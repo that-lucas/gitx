@@ -56,7 +56,7 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
             set success 1
         end
         
-        __gitx_present_passthrough $success $out_lines
+        __gitx_present_passthrough $success $first $out_lines
         
         return $rc
     end
@@ -78,12 +78,7 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
         return 1
     end
 
-    set -l subcmd $argv[1]
-
-    set -l ok_count 0
-    set -l noop_count 0
-    set -l fail_count 0
-    set -l failed_repos
+    set -l any_failure 0
 
     for i in (seq 1 (count $repo_names))
         set -l repo_name $repo_names[$i]
@@ -102,61 +97,17 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
             end
         end
 
-        set -l lowered (string lower -- "$output")
-        set -l is_noop 0
-
-        if test $rc -ne 0
-            if test "$subcmd" = "commit"
-                if string match -q '*nothing to commit*' -- "$lowered"
-                    set is_noop 1
-                else if string match -q '*nothing added to commit*' -- "$lowered"
-                    set is_noop 1
-                else if string match -q '*no changes added to commit*' -- "$lowered"
-                    set is_noop 1
-                end
-            end
-        end
-
-        set -l repo_status
+        set -l success 0
         if test $rc -eq 0
-            set ok_count (math $ok_count + 1)
-            set repo_status "ok"
-        else if test $is_noop -eq 1
-            set noop_count (math $noop_count + 1)
-            set repo_status "noop"
+            set success 1
         else
-            set fail_count (math $fail_count + 1)
-            set failed_repos $failed_repos "$repo_name"
-            set repo_status "failed"
-            set repo_status $repo_status "Exit code: $rc"
+            set any_failure 1
         end
-
-        # Print repo result inline
-        set_color brblack
-        printf "  %s: " "$repo_name"
-        set_color normal
         
-        if test $rc -eq 0
-            set_color green
-            echo "✓"
-            set_color normal
-        else if test $is_noop -eq 1
-            echo "(no changes)"
-        else
-            set_color red
-            printf "✗ (exit %d)\n" $rc
-            set_color normal
-        end
+        __gitx_present_passthrough $success $repo_name $out_lines
     end
-
-    echo
-    __gitx_print_summary \
-        "Total repos" (count $repo_names) \
-        "Success" "$ok_count" \
-        "No changes" "$noop_count" \
-        "Failed" "$fail_count"
     
-    if test $fail_count -gt 0
+    if test $any_failure -eq 1
         return 1
     end
 
