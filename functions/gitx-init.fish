@@ -1,6 +1,6 @@
 function gitx-init --description 'Initialize ~/.gitx/repos/<repo>/repo as bare repo with ignore-all exclude'
     if test (count $argv) -lt 1
-        echo "Usage: gitx-init [--dry-run] <repo> [remote-url]" >&2
+        __gitx_present_usage "gitx-init" "gitx-init [--dry-run] <repo> [remote-url]" >&2
         return 1
     end
 
@@ -15,7 +15,7 @@ function gitx-init --description 'Initialize ~/.gitx/repos/<repo>/repo as bare r
     end
 
     if test (count $args) -lt 1
-        echo "Usage: gitx-init [--dry-run] <repo> [remote-url]" >&2
+        __gitx_present_usage "gitx-init" "gitx-init [--dry-run] <repo> [remote-url]" >&2
         return 1
     end
 
@@ -52,7 +52,7 @@ function gitx-init --description 'Initialize ~/.gitx/repos/<repo>/repo as bare r
         else
             command $init_cmd >/dev/null 2>/dev/null
             or begin
-                echo "gitx-init: failed to initialize bare repo: $repo" >&2
+                __gitx_present_problem "gitx-init" "$repo_name" 0 "Failed to initialize bare repo" "$repo"
                 return 1
             end
             set run_cmds $run_cmds (string join -- ' ' (string escape -- $init_cmd))
@@ -111,7 +111,7 @@ function gitx-init --description 'Initialize ~/.gitx/repos/<repo>/repo as bare r
         else
             command $cfg_url_cmd >/dev/null 2>/dev/null
             or begin
-                echo "gitx-init: failed to set remote.origin.url" >&2
+                __gitx_present_problem "gitx-init" "$repo_name" 0 "Failed to set remote.origin.url" "$remote_url"
                 return 1
             end
             set run_cmds $run_cmds (string join -- ' ' (string escape -- $cfg_url_cmd))
@@ -119,7 +119,7 @@ function gitx-init --description 'Initialize ~/.gitx/repos/<repo>/repo as bare r
 
             command $cfg_fetch_cmd >/dev/null 2>/dev/null
             or begin
-                echo "gitx-init: failed to set remote.origin.fetch" >&2
+                __gitx_present_problem "gitx-init" "$repo_name" 0 "Failed to set remote.origin.fetch"
                 return 1
             end
             set run_cmds $run_cmds (string join -- ' ' (string escape -- $cfg_fetch_cmd))
@@ -134,7 +134,7 @@ function gitx-init --description 'Initialize ~/.gitx/repos/<repo>/repo as bare r
     else
         command $cfg_status_cmd >/dev/null 2>/dev/null
         or begin
-            echo "gitx-init: failed to set status.showUntrackedFiles=no" >&2
+            __gitx_present_problem "gitx-init" "$repo_name" 0 "Failed to set status.showUntrackedFiles=no"
             return 1
         end
         set run_cmds $run_cmds (string join -- ' ' (string escape -- $cfg_status_cmd))

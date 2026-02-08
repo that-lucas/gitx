@@ -1,6 +1,6 @@
 function gitx-track --description 'Unignore and stage files into ~/.gitx/repos/<repo>/repo'
     if test (count $argv) -lt 2
-        echo "Usage: gitx-track [--dry-run] <repo> <file> [file ...]" >&2
+        __gitx_present_usage "gitx-track" "gitx-track [--dry-run] <repo> <file> [file ...]" >&2
         return 1
     end
 
@@ -15,7 +15,7 @@ function gitx-track --description 'Unignore and stage files into ~/.gitx/repos/<
     end
 
     if test (count $args) -lt 2
-        echo "Usage: gitx-track [--dry-run] <repo> <file> [file ...]" >&2
+        __gitx_present_usage "gitx-track" "gitx-track [--dry-run] <repo> <file> [file ...]" >&2
         return 1
     end
 
@@ -24,7 +24,7 @@ function gitx-track --description 'Unignore and stage files into ~/.gitx/repos/<
     set -l exclude "$repo/info/exclude"
 
     if not test -d "$repo"
-        echo "gitx-track: repo not found: $repo" >&2
+        __gitx_present_problem "gitx-track" "$repo_name" "$dry_run" "Repo not found" "$repo"
         return 1
     end
 
@@ -60,12 +60,12 @@ function gitx-track --description 'Unignore and stage files into ~/.gitx/repos/<
         end
 
         if not test -e "$expanded"
-            set run_skipped $run_skipped "path not found: $raw"
+            set run_skipped $run_skipped "Path not found: $raw"
             continue
         end
 
         if test -d "$expanded"
-            set run_skipped $run_skipped "directory not allowed (pass files explicitly): $raw"
+            set run_skipped $run_skipped "Directory not allowed (pass files explicitly): $raw"
             continue
         end
 
@@ -74,7 +74,7 @@ function gitx-track --description 'Unignore and stage files into ~/.gitx/repos/<
         set -l root_relative (string trim -l -c '/' -- "$norm")
 
         if test -z "$root_relative"
-            set run_skipped $run_skipped "cannot track root path: $raw"
+            set run_skipped $run_skipped "Cannot track root path: $raw"
             continue
         end
 
@@ -126,7 +126,7 @@ function gitx-track --description 'Unignore and stage files into ~/.gitx/repos/<
 
         command $add_cmd >/dev/null 2>/dev/null
         or begin
-            set run_skipped $run_skipped "git add failed: $norm"
+            set run_skipped $run_skipped "Git add failed: $norm"
             continue
         end
         set run_cmds $run_cmds (string join -- ' ' (string escape -- $add_cmd))
@@ -144,7 +144,7 @@ function gitx-track --description 'Unignore and stage files into ~/.gitx/repos/<
             set -l hash_cmd git -C / --git-dir="$repo" hash-object -w -- "$norm"
             set -l blob_hash (command $hash_cmd 2>/dev/null)
             if test $status -ne 0 -o -z "$blob_hash"
-                set run_skipped $run_skipped "fallback hash-object failed: $norm"
+                set run_skipped $run_skipped "Fallback hash-object failed: $norm"
                 continue
             end
             set run_cmds $run_cmds (string join -- ' ' (string escape -- $hash_cmd))
@@ -152,14 +152,14 @@ function gitx-track --description 'Unignore and stage files into ~/.gitx/repos/<
             set -l update_cmd git -C / --git-dir="$repo" --work-tree=/ update-index --add --cacheinfo "$mode" "$blob_hash" "$root_relative"
             command $update_cmd >/dev/null 2>/dev/null
             or begin
-                set run_skipped $run_skipped "fallback update-index failed: $norm"
+                set run_skipped $run_skipped "Fallback update-index failed: $norm"
                 continue
             end
             set run_cmds $run_cmds (string join -- ' ' (string escape -- $update_cmd))
 
             command $verify_cmd >/dev/null 2>/dev/null
             if test $status -ne 0
-                set run_skipped $run_skipped "file not added to index: $norm"
+                set run_skipped $run_skipped "File not added to index: $norm"
                 continue
             end
         end
@@ -177,7 +177,14 @@ function gitx-track --description 'Unignore and stage files into ~/.gitx/repos/<
     end
 
     if test $dry_run -eq 1
-        __gitx_present_track 1 "$repo_name" (count $dry_targets) $dry_targets
+        set -l present_args 1 "$repo_name" (count $dry_targets) $dry_targets
+        for warning in $run_skipped
+            set present_args $present_args --warning "$warning"
+        end
+        if test $tracked_count -eq 0
+            set present_args $present_args --reason "No files matched or could be tracked"
+        end
+        __gitx_present_track $present_args
         if test $tracked_count -eq 0
             return 1
         end
@@ -185,6 +192,12 @@ function gitx-track --description 'Unignore and stage files into ~/.gitx/repos/<
     end
 
     if test $tracked_count -eq 0
+        set -l present_args 0 "$repo_name" 0
+        for warning in $run_skipped
+            set present_args $present_args --warning "$warning"
+        end
+        set present_args $present_args --reason "No files matched or could be tracked"
+        __gitx_present_track $present_args
         return 1
     end
 
@@ -197,5 +210,9 @@ function gitx-track --description 'Unignore and stage files into ~/.gitx/repos/<
         set all_tracked_files $all_tracked_files $f
     end
 
-    __gitx_present_track 0 "$repo_name" "$tracked_count" $all_tracked_files
+    set -l present_args 0 "$repo_name" "$tracked_count" $all_tracked_files
+    for warning in $run_skipped
+        set present_args $present_args --warning "$warning"
+    end
+    __gitx_present_track $present_args
 end

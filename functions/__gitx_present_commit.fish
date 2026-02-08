@@ -15,10 +15,49 @@ function __gitx_present_commit --description 'Presenter for gitx-commit command 
     set -l repo_name $argv[2]
     set -l items_count $argv[3]
     set -l commit_message $argv[4]
+    if not string match -qr '^[0-9]+$' -- "$items_count"
+        echo "Error: __gitx_present_commit items_count must be a non-negative integer" >&2
+        return 1
+    end
+
     set -l file_paths
-    
-    if test (count $argv) -ge 5
-        set file_paths $argv[5..-1]
+    set -l warnings
+    set -l reason
+    set -l argc (count $argv)
+    set -l idx 5
+
+    if test "$items_count" -gt 0
+        set -l file_end (math $idx + $items_count - 1)
+        if test $file_end -gt $argc
+            echo "Error: __gitx_present_commit missing file path arguments" >&2
+            return 1
+        end
+        set file_paths $argv[$idx..$file_end]
+        set idx (math $file_end + 1)
+    end
+
+    while test $idx -le $argc
+        set -l token $argv[$idx]
+        switch "$token"
+            case '--warning'
+                set idx (math $idx + 1)
+                if test $idx -gt $argc
+                    echo "Error: __gitx_present_commit missing value for --warning" >&2
+                    return 1
+                end
+                set warnings $warnings "$argv[$idx]"
+            case '--reason'
+                set idx (math $idx + 1)
+                if test $idx -gt $argc
+                    echo "Error: __gitx_present_commit missing value for --reason" >&2
+                    return 1
+                end
+                set reason "$argv[$idx]"
+            case '*'
+                echo "Error: __gitx_present_commit unknown optional argument: $token" >&2
+                return 1
+        end
+        set idx (math $idx + 1)
     end
     
     # Determine icon and color based on dry_run and items_count
@@ -73,9 +112,13 @@ function __gitx_present_commit --description 'Presenter for gitx-commit command 
     # Display message (indented by 2 spaces, only when items_count > 0)
     if test $items_count -gt 0
         echo
-        printf "  Message: %s\n" "$commit_message"
+        printf "  Message: "
+        set_color $result_color
+        set_color --bold
+        printf "%s\n" "$commit_message"
+        set_color normal
     end
-    
+
     # Show next step only for actual commits with items_count > 0
     if test $dry_run -eq 0 -a $items_count -gt 0
         echo

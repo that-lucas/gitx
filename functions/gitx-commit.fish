@@ -1,12 +1,12 @@
 function gitx-commit --description 'Commit staged changes for ~/.gitx repo with optional message and dry-run'
     argparse 'n/dry-run' 'm/message=' -- $argv
     or begin
-        echo "Usage: gitx-commit [--dry-run] <repo> [-m|--message <text>]" >&2
+        __gitx_present_usage "gitx-commit" "gitx-commit [--dry-run] <repo> [-m|--message <text>]" >&2
         return 1
     end
 
     if test (count $argv) -ne 1
-        echo "Usage: gitx-commit [--dry-run] <repo> [-m|--message <text>]" >&2
+        __gitx_present_usage "gitx-commit" "gitx-commit [--dry-run] <repo> [-m|--message <text>]" >&2
         return 1
     end
 
@@ -14,7 +14,7 @@ function gitx-commit --description 'Commit staged changes for ~/.gitx repo with 
     set -l repo "$HOME/.gitx/repos/$repo_name/repo"
 
     if not test -d "$repo"
-        echo "gitx-commit: repo not found: $repo" >&2
+        __gitx_present_problem "gitx-commit" "$repo_name" 0 "Repo not found" "$repo"
         return 1
     end
 
@@ -77,14 +77,14 @@ function gitx-commit --description 'Commit staged changes for ~/.gitx repo with 
 
     command $auto_add_cmd >/dev/null 2>/dev/null
     or begin
-        echo "gitx-commit: failed to auto-stage tracked changes" >&2
+        __gitx_present_problem "gitx-commit" "$repo_name" 0 "Failed to auto-stage tracked changes"
         return 1
     end
 
     command $check_cmd >/dev/null 2>/dev/null
     set -l has_staged_status $status
     if test $has_staged_status -ne 0 -a $has_staged_status -ne 1
-        echo "gitx-commit: failed while checking staged changes" >&2
+        __gitx_present_problem "gitx-commit" "$repo_name" 0 "Failed while checking staged changes"
         return 1
     end
 
@@ -108,7 +108,7 @@ function gitx-commit --description 'Commit staged changes for ~/.gitx repo with 
 
     command $commit_cmd >/dev/null 2>/dev/null
     or begin
-        echo "gitx-commit: commit failed" >&2
+        __gitx_present_problem "gitx-commit" "$repo_name" 0 "Commit failed"
         return 1
     end
 

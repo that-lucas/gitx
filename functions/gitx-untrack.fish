@@ -1,6 +1,6 @@
 function gitx-untrack --description 'Untrack files from ~/.gitx bare repo and safely prune auto-unignore entries'
     if test (count $argv) -lt 2
-        echo "Usage: gitx-untrack [--dry-run] <repo> <file> [file ...]" >&2
+        __gitx_present_usage "gitx-untrack" "gitx-untrack [--dry-run] <repo> <file> [file ...]" >&2
         return 1
     end
 
@@ -15,7 +15,7 @@ function gitx-untrack --description 'Untrack files from ~/.gitx bare repo and sa
     end
 
     if test (count $args) -lt 2
-        echo "Usage: gitx-untrack [--dry-run] <repo> <file> [file ...]" >&2
+        __gitx_present_usage "gitx-untrack" "gitx-untrack [--dry-run] <repo> <file> [file ...]" >&2
         return 1
     end
 
@@ -24,18 +24,19 @@ function gitx-untrack --description 'Untrack files from ~/.gitx bare repo and sa
     set -l exclude "$repo/info/exclude"
 
     if not test -d "$repo"
-        echo "gitx-untrack: repo not found: $repo" >&2
+        __gitx_present_problem "gitx-untrack" "$repo_name" "$dry_run" "Repo not found" "$repo"
         return 1
     end
 
     set -l tracked (command git -C / --git-dir="$repo" --work-tree=/ ls-files)
     or begin
-        echo "gitx-untrack: failed to list tracked files" >&2
+        __gitx_present_problem "gitx-untrack" "$repo_name" "$dry_run" "Failed to list tracked files"
         return 1
     end
 
     set -l to_untrack
     set -l removed_abs
+    set -l skipped_not_tracked
 
     for raw in $args[2..-1]
         set -l expanded $raw
@@ -53,12 +54,16 @@ function gitx-untrack --description 'Untrack files from ~/.gitx bare repo and sa
                 set removed_abs $removed_abs "$norm"
             end
         else
-            echo "gitx-untrack: not tracked, skipping: $raw" >&2
+            set skipped_not_tracked $skipped_not_tracked "Not tracked, skipping: $raw"
         end
     end
 
     if test (count $to_untrack) -eq 0
-        echo "gitx-untrack: no tracked files matched" >&2
+        set -l present_args $dry_run "$repo_name" 0 --reason "No tracked files matched"
+        for warning in $skipped_not_tracked
+            set present_args $present_args --warning "$warning"
+        end
+        __gitx_present_untrack $present_args
         return 1
     end
 
@@ -72,7 +77,7 @@ function gitx-untrack --description 'Untrack files from ~/.gitx bare repo and sa
     if test $dry_run -eq 0
         command $rm_cmd >/dev/null 2>/dev/null
         or begin
-            echo "gitx-untrack: git rm --cached failed" >&2
+            __gitx_present_problem "gitx-untrack" "$repo_name" 0 "Failed to untrack files from index" "Git rm --cached failed"
             return 1
         end
         set run_cmds $run_cmds (string join -- ' ' (string escape -- $rm_cmd))
@@ -80,11 +85,11 @@ function gitx-untrack --description 'Untrack files from ~/.gitx bare repo and sa
 
     if not test -f "$exclude"
         # Exclude file missing - just call presenter and return
-        if test $dry_run -eq 1
-            __gitx_present_untrack 1 "$repo_name" (count $to_untrack) $removed_abs
-        else
-            __gitx_present_untrack 0 "$repo_name" (count $to_untrack) $removed_abs
+        set -l present_args $dry_run "$repo_name" (count $to_untrack) $removed_abs
+        for warning in $skipped_not_tracked
+            set present_args $present_args --warning "$warning"
         end
+        __gitx_present_untrack $present_args
         return 0
     end
 
@@ -188,12 +193,20 @@ function gitx-untrack --description 'Untrack files from ~/.gitx bare repo and sa
             set dry_cmds $dry_cmds "rewrite $exclude (without removed entries)"
         end
 
-        __gitx_present_untrack 1 "$repo_name" (count $to_untrack) $removed_abs
+        set -l present_args 1 "$repo_name" (count $to_untrack) $removed_abs
+        for warning in $skipped_not_tracked
+            set present_args $present_args --warning "$warning"
+        end
+        __gitx_present_untrack $present_args
         return 0
     end
 
     if test (count $remove_entries) -eq 0
-        __gitx_present_untrack 0 "$repo_name" (count $to_untrack) $removed_abs
+        set -l present_args 0 "$repo_name" (count $to_untrack) $removed_abs
+        for warning in $skipped_not_tracked
+            set present_args $present_args --warning "$warning"
+        end
+        __gitx_present_untrack $present_args
         return 0
     end
 
@@ -209,7 +222,7 @@ function gitx-untrack --description 'Untrack files from ~/.gitx bare repo and sa
     cp "$exclude" "$exclude.bak"
     or begin
         rm -f "$tmp"
-        echo "gitx-untrack: failed to create backup: $exclude.bak" >&2
+        __gitx_present_problem "gitx-untrack" "$repo_name" 0 "Failed to create exclude backup" "$exclude.bak"
         return 1
     end
     set run_cmds $run_cmds (string join -- ' ' (string escape -- cp "$exclude" "$exclude.bak"))
@@ -217,10 +230,14 @@ function gitx-untrack --description 'Untrack files from ~/.gitx bare repo and sa
     mv "$tmp" "$exclude"
     or begin
         rm -f "$tmp"
-        echo "gitx-untrack: failed to update exclude file" >&2
+        __gitx_present_problem "gitx-untrack" "$repo_name" 0 "Failed to update exclude file" "$exclude"
         return 1
     end
     set run_cmds $run_cmds "rewrite $exclude (without removed entries)"
 
-    __gitx_present_untrack 0 "$repo_name" (count $to_untrack) $removed_abs
+    set -l present_args 0 "$repo_name" (count $to_untrack) $removed_abs
+    for warning in $skipped_not_tracked
+        set present_args $present_args --warning "$warning"
+    end
+    __gitx_present_untrack $present_args
 end

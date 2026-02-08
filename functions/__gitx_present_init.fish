@@ -53,6 +53,7 @@ function __gitx_present_init --description 'Presenter for gitx-init command outp
         printf ")"
     end
     printf "\n"
+    echo
     
     # Show next step (for both dry-run and actual)
     printf "  Next: "

@@ -2,10 +2,6 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
     set -l repos_dir "$HOME/.gitx/repos"
 
     if test (count $argv) -lt 1
-        echo "Usage:" >&2
-        echo "  gitx <repo> <git args...>     # single repo" >&2
-        echo "  gitx <git args...>               # all repos" >&2
-
         if test -d "$repos_dir"
             set -l names
             for d in "$repos_dir"/*
@@ -14,15 +10,20 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
                 end
             end
             if test (count $names) -gt 0
-                echo "Available repos:" >&2
-                for name in $names
-                    echo "  $name" >&2
-                end
+                __gitx_present_usage_gitx $names >&2
             else
-                echo "No repos found in $repos_dir" >&2
+                __gitx_present_usage "gitx" \
+                    "gitx <repo> <git args...> # single repo" \
+                    "gitx        <git args...> # all repos" \
+                    "" \
+                    "No repos found in $repos_dir" >&2
             end
         else
-            echo "Repos directory not found: $repos_dir" >&2
+            __gitx_present_usage "gitx" \
+                "gitx <repo> <git args...> # single repo" \
+                "gitx        <git args...> # all repos" \
+                "" \
+                "Repos directory not found: $repos_dir" >&2
         end
 
         return 1
@@ -34,7 +35,7 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
     # Single-repo mode wins if first argument matches an existing repo.
     if test -d "$maybe_repo"
         if test (count $argv) -lt 2
-            echo "Usage: gitx <repo> <git args...>" >&2
+            __gitx_present_usage "gitx" "gitx <repo> <git args...>" >&2
             return 1
         end
 
@@ -74,7 +75,7 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
     end
 
     if test (count $repo_names) -eq 0
-        echo "gitx: no repos found in $repos_dir" >&2
+        __gitx_present_problem "gitx" "-" 0 "No repos found" "$repos_dir"
         return 1
     end
 
