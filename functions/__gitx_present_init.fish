@@ -42,8 +42,17 @@ function __gitx_present_init --description 'Presenter for gitx-init command outp
     printf "Bare repo created at "
     set_color $result_color
     set_color --bold
-    printf "%s\n" "$repo_path"
+    printf "%s" "$repo_path"
     set_color normal
+    if test -n "$remote_url"
+        printf " ("
+        set_color $result_color
+        set_color --bold
+        printf "%s" "$remote_url"
+        set_color normal
+        printf ")"
+    end
+    printf "\n"
     
     # Show next step (for both dry-run and actual)
     printf "  Next: "

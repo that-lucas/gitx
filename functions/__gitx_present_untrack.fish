@@ -58,7 +58,7 @@ function __gitx_present_untrack --description 'Presenter for gitx-untrack comman
             printf "    "
             set_color $result_color
             set_color --bold
-            printf "%s\n" "$filepath"
+            printf "\e[9m%s\e[0m\n" "$filepath"
             set_color normal
         end
     end
