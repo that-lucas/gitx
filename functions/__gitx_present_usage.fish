@@ -30,7 +30,6 @@ function __gitx_present_usage --description 'Presenter for command usage/help ou
         end
         printf "  "
         set_color cyan
-        set_color --bold
         printf "%s\n" "$line"
         set_color normal
     end

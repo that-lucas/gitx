@@ -143,16 +143,16 @@ test-usage-presenter: setup-fish
 	@echo "7. USAGE PRESENTER"
 	@echo "7a. gitx usage - with available repos"
 	@echo "-------------------------------------"
-	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx "demo-repo" "configs-repo"'
-	@echo "7b. gitx usage - missing repo command args"
-	@echo "------------------------------------------"
-	@fish -c 'source functions/__gitx_present_usage.fish; __gitx_present_usage "gitx" "gitx <repo> <git args...>"'
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx with-repos "demo-repo" "configs-repo"'
+	@echo "7b. gitx usage - single repo missing git args"
+	@echo "---------------------------------------------"
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx no-git-args "demo-repo"'
 	@echo "7c. gitx usage - no repos found"
 	@echo "-------------------------------"
-	@fish -c 'source functions/__gitx_present_usage.fish; __gitx_present_usage "gitx" "gitx <repo> <git args...> # single repo" "gitx        <git args...> # all repos" "" "No repos found in $$HOME/.gitx/repos"'
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx no-repos "$$HOME/.gitx/repos"'
 	@echo "7d. gitx usage - repos directory missing"
 	@echo "---------------------------------------"
-	@fish -c 'source functions/__gitx_present_usage.fish; __gitx_present_usage "gitx" "gitx <repo> <git args...> # single repo" "gitx        <git args...> # all repos" "" "Repos directory not found: $$HOME/.gitx/repos"'
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx missing-repos-dir "$$HOME/.gitx/repos"'
 	@echo "7e. gitx-init usage"
 	@echo "-------------------"
 	@fish -c 'source functions/__gitx_present_usage.fish; __gitx_present_usage "gitx-init" "gitx-init [--dry-run] <repo> [remote-url]"'

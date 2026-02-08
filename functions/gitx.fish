@@ -10,20 +10,12 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
                 end
             end
             if test (count $names) -gt 0
-                __gitx_present_usage_gitx $names >&2
+                __gitx_present_usage_gitx with-repos $names >&2
             else
-                __gitx_present_usage "gitx" \
-                    "gitx <repo> <git args...> # single repo" \
-                    "gitx        <git args...> # all repos" \
-                    "" \
-                    "No repos found in $repos_dir" >&2
+                __gitx_present_usage_gitx no-repos "$repos_dir" >&2
             end
         else
-            __gitx_present_usage "gitx" \
-                "gitx <repo> <git args...> # single repo" \
-                "gitx        <git args...> # all repos" \
-                "" \
-                "Repos directory not found: $repos_dir" >&2
+            __gitx_present_usage_gitx missing-repos-dir "$repos_dir" >&2
         end
 
         return 1
@@ -35,7 +27,7 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
     # Single-repo mode wins if first argument matches an existing repo.
     if test -d "$maybe_repo"
         if test (count $argv) -lt 2
-            __gitx_present_usage "gitx" "gitx <repo> <git args...>" >&2
+            __gitx_present_usage_gitx no-git-args "$first" >&2
             return 1
         end
 
