@@ -1,12 +1,12 @@
 function gitx-commit --description 'Commit staged changes for ~/.gitx repo with optional message and dry-run'
     argparse 'n/dry-run' 'm/message=' -- $argv
     or begin
-        echo "Usage: gitx-commit [--dry-run] <repo> [-m|--message <text>]" >&2
+        __gitx_present_usage "gitx-commit" "gitx-commit [--dry-run] <repo> [-m|--message <text>]" >&2
         return 1
     end
 
     if test (count $argv) -ne 1
-        echo "Usage: gitx-commit [--dry-run] <repo> [-m|--message <text>]" >&2
+        __gitx_present_usage "gitx-commit" "gitx-commit [--dry-run] <repo> [-m|--message <text>]" >&2
         return 1
     end
 
@@ -14,7 +14,7 @@ function gitx-commit --description 'Commit staged changes for ~/.gitx repo with 
     set -l repo "$HOME/.gitx/repos/$repo_name/repo"
 
     if not test -d "$repo"
-        echo "gitx-commit: repo not found: $repo" >&2
+        __gitx_present_problem "gitx-commit" "$repo_name" 0 "Repo not found" "$repo"
         return 1
     end
 
@@ -66,39 +66,25 @@ function gitx-commit --description 'Commit staged changes for ~/.gitx repo with 
             set dry_message $dry_message "Note: no staged changes; commit would not run"
         end
 
-        __gitx_print_mode "Dry-run mode"
-        __gitx_print_section "Would auto-stage modified tracked files" $dry_auto_files
-        __gitx_print_section "Would include staged files" $dry_files
-        __gitx_print_section "Commit" $dry_message
-        __gitx_print_section "Would run" $dry_cmds
-
         if test $has_staged_status -eq 0
-            __gitx_print_summary \
-                "Repo" "$repo_name" \
-                "Commands" (count $dry_cmds) \
-                "  Staged files" "0" \
-                "  Commit would run" "no"
-            return 1
+            __gitx_present_commit 1 "$repo_name" 0 "$message"
+            return 0
         end
 
-        __gitx_print_summary \
-            "Repo" "$repo_name" \
-            "Commands" (count $dry_cmds) \
-            "  Staged files" (count $staged_files) \
-            "  Commit would run" "yes"
+        __gitx_present_commit 1 "$repo_name" (count $staged_files) "$message" $dry_files
         return 0
     end
 
     command $auto_add_cmd >/dev/null 2>/dev/null
     or begin
-        echo "gitx-commit: failed to auto-stage tracked changes" >&2
+        __gitx_present_problem "gitx-commit" "$repo_name" 0 "Failed to auto-stage tracked changes"
         return 1
     end
 
     command $check_cmd >/dev/null 2>/dev/null
     set -l has_staged_status $status
     if test $has_staged_status -ne 0 -a $has_staged_status -ne 1
-        echo "gitx-commit: failed while checking staged changes" >&2
+        __gitx_present_problem "gitx-commit" "$repo_name" 0 "Failed while checking staged changes"
         return 1
     end
 
@@ -107,24 +93,8 @@ function gitx-commit --description 'Commit staged changes for ~/.gitx repo with 
     end
 
     if test $has_staged_status -eq 0
-        __gitx_print_mode "Commit result"
-        set -l run_auto_files
-        for f in $unstaged_files
-            set run_auto_files $run_auto_files "/$f"
-        end
-        __gitx_print_section "Auto-staged modified tracked files" $run_auto_files
-        __gitx_print_section "Staged files" "(none)"
-        __gitx_print_section "Commit" "Message: $message" "Note: nothing staged; commit not executed"
-        __gitx_print_section "Ran" \
-            (string join -- ' ' (string escape -- $auto_add_cmd)) \
-            (string join -- ' ' (string escape -- $check_cmd))
-        __gitx_print_summary \
-            "Repo" "$repo_name" \
-            "Commands" "2" \
-            "  Auto-staged candidates" (count $unstaged_files) \
-            "  Staged files" "0" \
-            "  Commit executed" "no"
-        return 1
+        __gitx_present_commit 0 "$repo_name" 0 "$message"
+        return 0
     end
 
     set -l run_files
@@ -138,23 +108,9 @@ function gitx-commit --description 'Commit staged changes for ~/.gitx repo with 
 
     command $commit_cmd >/dev/null 2>/dev/null
     or begin
-        echo "gitx-commit: commit failed" >&2
+        __gitx_present_problem "gitx-commit" "$repo_name" 0 "Commit failed"
         return 1
     end
 
-    __gitx_print_mode "Commit result"
-    __gitx_print_section "Auto-staged modified tracked files" $run_auto_files
-    __gitx_print_section "Staged files" $run_files
-    __gitx_print_section "Commit message" "message: $message"
-    __gitx_print_section "Ran" \
-        (string join -- ' ' (string escape -- $auto_add_cmd)) \
-        (string join -- ' ' (string escape -- $check_cmd)) \
-        (string join -- ' ' (string escape -- $commit_cmd))
-    __gitx_print_summary \
-        "Repo" "$repo_name" \
-        "Commands" "3" \
-        "  Auto-staged candidates" (count $unstaged_files) \
-        "  Staged files" (count $staged_files) \
-        "  Commit executed" "yes"
-    __gitx_print_section "Next step" "gitx $repo_name push"
+    __gitx_present_commit 0 "$repo_name" (count $staged_files) "$message" $run_files
 end

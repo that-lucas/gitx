@@ -2,10 +2,6 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
     set -l repos_dir "$HOME/.gitx/repos"
 
     if test (count $argv) -lt 1
-        echo "Usage:" >&2
-        echo "  gitx <repo> <git args...>     # single repo" >&2
-        echo "  gitx <git args...>               # all repos" >&2
-
         if test -d "$repos_dir"
             set -l names
             for d in "$repos_dir"/*
@@ -14,15 +10,12 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
                 end
             end
             if test (count $names) -gt 0
-                echo "Available repos:" >&2
-                for name in $names
-                    echo "  $name" >&2
-                end
+                __gitx_present_usage_gitx with-repos $names >&2
             else
-                echo "No repos found in $repos_dir" >&2
+                __gitx_present_usage_gitx no-repos "$repos_dir" >&2
             end
         else
-            echo "Repos directory not found: $repos_dir" >&2
+            __gitx_present_usage_gitx missing-repos-dir "$repos_dir" >&2
         end
 
         return 1
@@ -34,33 +27,23 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
     # Single-repo mode wins if first argument matches an existing repo.
     if test -d "$maybe_repo"
         if test (count $argv) -lt 2
-            echo "Usage: gitx <repo> <git args...>" >&2
+            __gitx_present_usage_gitx no-git-args "$first" >&2
             return 1
         end
 
         set -l single_cmd git -C / --git-dir="$maybe_repo" --work-tree=/ $argv[2..-1]
-        set -l output (command $single_cmd 2>&1 | string collect)
+        __gitx_present_passthrough begin
+        __gitx_present_passthrough entry-start "$first"
+        command $single_cmd
         set -l rc $status
 
-        set -l out_lines
-        if test -n "$output"
-            for line in (string split \n -- "$output")
-                if test -n "$line"
-                    set out_lines $out_lines "$line"
-                end
-            end
+        set -l success 0
+        if test $rc -eq 0
+            set success 1
         end
 
-        __gitx_print_mode "Gitx result"
-        __gitx_print_section "Repo" "$first"
-        __gitx_print_section "Ran" (string join -- ' ' (string escape -- $single_cmd))
-        __gitx_print_section "Output" $out_lines
-        __gitx_print_section "Status" "Exit code: $rc"
-        __gitx_print_summary \
-            "Repos" "1" \
-            "  Ok" (test $rc -eq 0; and echo 1; or echo 0) \
-            "  Noop" "0" \
-            "  Failed" (test $rc -eq 0; and echo 0; or echo 1)
+        __gitx_present_passthrough entry-end $success "$first"
+
         return $rc
     end
 
@@ -77,77 +60,33 @@ function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo
     end
 
     if test (count $repo_names) -eq 0
-        echo "gitx: no repos found in $repos_dir" >&2
+        __gitx_present_problem "gitx" "-" 0 "No repos found" "$repos_dir"
         return 1
     end
 
-    set -l subcmd $argv[1]
-
-    set -l ok_count 0
-    set -l noop_count 0
-    set -l fail_count 0
-    set -l failed_repos
+    set -l any_failure 0
+    __gitx_present_passthrough begin
 
     for i in (seq 1 (count $repo_names))
         set -l repo_name $repo_names[$i]
         set -l repo $repos[$i]
 
         set -l repo_cmd git -C / --git-dir="$repo" --work-tree=/ $argv
-        set -l output (command $repo_cmd 2>&1 | string collect)
+        __gitx_present_passthrough entry-start "$repo_name"
+        command $repo_cmd
         set -l rc $status
 
-        set -l out_lines
-        if test -n "$output"
-            for line in (string split \n -- "$output")
-                if test -n "$line"
-                    set out_lines $out_lines "$line"
-                end
-            end
-        end
-
-        set -l lowered (string lower -- "$output")
-        set -l is_noop 0
-
-        if test $rc -ne 0
-            if test "$subcmd" = "commit"
-                if string match -q '*nothing to commit*' -- "$lowered"
-                    set is_noop 1
-                else if string match -q '*nothing added to commit*' -- "$lowered"
-                    set is_noop 1
-                else if string match -q '*no changes added to commit*' -- "$lowered"
-                    set is_noop 1
-                end
-            end
-        end
-
-        set -l repo_status
+        set -l success 0
         if test $rc -eq 0
-            set ok_count (math $ok_count + 1)
-            set repo_status "ok"
-        else if test $is_noop -eq 1
-            set noop_count (math $noop_count + 1)
-            set repo_status "noop"
+            set success 1
         else
-            set fail_count (math $fail_count + 1)
-            set failed_repos $failed_repos "$repo_name"
-            set repo_status "failed"
-            set repo_status $repo_status "Exit code: $rc"
+            set any_failure 1
         end
 
-        __gitx_print_mode "Gitx result"
-        __gitx_print_section "Repo" "$repo_name"
-        __gitx_print_section "Ran" (string join -- ' ' (string escape -- $repo_cmd))
-        __gitx_print_section "Output" $out_lines
-        __gitx_print_section "Status" $repo_status
+        __gitx_present_passthrough entry-end $success "$repo_name"
     end
-
-    __gitx_print_summary \
-        "Repos" (count $repo_names) \
-        "  Ok" "$ok_count" \
-        "  Noop" "$noop_count" \
-        "  Failed" "$fail_count"
-    if test $fail_count -gt 0
-        __gitx_print_section "Failed repos" (string join ', ' $failed_repos)
+    
+    if test $any_failure -eq 1
         return 1
     end
 
