@@ -1,10 +1,12 @@
-.PHONY: test-presenters test-all-presenters test-init-presenter test-track-presenter test-untrack-presenter test-commit-presenter test-passthrough-presenter test-problem-presenter test-usage-presenter setup-fish
+.PHONY: demo-presenters demo-all-presenters demo-init-presenter demo-track-presenter demo-untrack-presenter demo-commit-presenter demo-passthrough-presenter demo-problem-presenter demo-usage-presenter test-all-presenters test-presenter-contracts test-passthrough-presenter-contracts test-usage-gitx-presenter-contracts setup-fish
 
-test-presenters: test-all-presenters
+demo-presenters: demo-all-presenters
 
-test-all-presenters: setup-fish test-init-presenter test-track-presenter test-untrack-presenter test-commit-presenter test-passthrough-presenter test-problem-presenter test-usage-presenter
+demo-all-presenters: setup-fish demo-init-presenter demo-track-presenter demo-untrack-presenter demo-commit-presenter demo-passthrough-presenter demo-problem-presenter demo-usage-presenter
 
-test-init-presenter: setup-fish
+test-all-presenters: setup-fish demo-all-presenters test-presenter-contracts
+
+demo-init-presenter: setup-fish
 	@echo "1. INIT PRESENTER"
 	@echo "1a. Init - Dry-run mode"
 	@echo "-----------------------"
@@ -19,7 +21,7 @@ test-init-presenter: setup-fish
 	@echo "------------------------------------"
 	@fish -c 'source functions/__gitx_present_init.fish; __gitx_present_init 0 /home/user/.gitx/repos/demo-repo/repo "git@github.com:user/configs.git" demo-repo'
 
-test-track-presenter: setup-fish
+demo-track-presenter: setup-fish
 	@echo "2. TRACK PRESENTER"
 	@echo "2a. Track - Dry-run with 3 files"
 	@echo "--------------------------------"
@@ -34,7 +36,7 @@ test-track-presenter: setup-fish
 	@echo "----------------------------------------------"
 	@fish -c 'source functions/__gitx_present_track.fish; __gitx_present_track 0 demo-repo 0'
 
-test-untrack-presenter: setup-fish
+demo-untrack-presenter: setup-fish
 	@echo "3. UNTRACK PRESENTER"
 	@echo "3a. Untrack - Dry-run with 2 files"
 	@echo "----------------------------------"
@@ -49,7 +51,7 @@ test-untrack-presenter: setup-fish
 	@echo "------------------------------------------------"
 	@fish -c 'source functions/__gitx_present_untrack.fish; __gitx_present_untrack 0 demo-repo 0'
 
-test-commit-presenter: setup-fish
+demo-commit-presenter: setup-fish
 	@echo "4. COMMIT PRESENTER"
 	@echo "4a. Commit - Dry-run with 2 files"
 	@echo "---------------------------------"
@@ -64,7 +66,7 @@ test-commit-presenter: setup-fish
 	@echo "---------------------------------------"
 	@fish -c 'source functions/__gitx_present_commit.fish; __gitx_present_commit 0 demo-repo 0 "Nothing to commit"'
 
-test-passthrough-presenter: setup-fish
+demo-passthrough-presenter: setup-fish
 	@echo "5. PASSTHROUGH PRESENTER"
 	@echo "5a. Passthrough - Single repo success"
 	@echo "-------------------------------------"
@@ -79,7 +81,7 @@ test-passthrough-presenter: setup-fish
 	@echo "------------------------------------------------"
 	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough begin; __gitx_present_passthrough entry-start demo-repo; __gitx_present_passthrough entry-end 1 demo-repo; __gitx_present_passthrough entry-start dotfiles; __gitx_present_passthrough entry-end 0 dotfiles'
 
-test-problem-presenter: setup-fish
+demo-problem-presenter: setup-fish
 	@echo "6. PROBLEM PRESENTER"
 	@echo "6a. gitx - no repos found"
 	@echo "--------------------------"
@@ -136,7 +138,7 @@ test-problem-presenter: setup-fish
 	@echo "-------------------------------"
 	@fish -c 'source functions/__gitx_present_problem.fish; __gitx_present_problem "gitx-commit" "demo-repo" 0 "Commit failed"'
 
-test-usage-presenter: setup-fish
+demo-usage-presenter: setup-fish
 	@echo "7. USAGE PRESENTER"
 	@echo "7a. gitx usage - with available repos"
 	@echo "-------------------------------------"
@@ -162,6 +164,53 @@ test-usage-presenter: setup-fish
 	@echo "7h. gitx-commit usage"
 	@echo "---------------------"
 	@fish -c 'source functions/__gitx_present_usage.fish; __gitx_present_usage "gitx-commit" "gitx-commit [--dry-run] <repo> [-m|--message <text>]"'
+
+test-presenter-contracts: setup-fish test-passthrough-presenter-contracts test-usage-gitx-presenter-contracts
+
+test-passthrough-presenter-contracts: setup-fish
+	@echo "8. PASSTHROUGH PRESENTER CONTRACTS"
+	@echo "8a. Missing mode argument"
+	@echo "-------------------------"
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough' 2>&1 | rg -F "Error: __gitx_present_passthrough requires at least 1 argument"
+	@echo "8b. Unknown mode"
+	@echo "----------------"
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough invalid-mode' 2>&1 | rg -F "Error: __gitx_present_passthrough unknown mode: invalid-mode"
+	@echo "8c. begin with extra args"
+	@echo "-------------------------"
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough begin extra' 2>&1 | rg -F "Error: __gitx_present_passthrough begin takes no extra arguments"
+	@echo "8d. entry-start missing repo"
+	@echo "----------------------------"
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough entry-start' 2>&1 | rg -F "Error: __gitx_present_passthrough entry-start requires exactly 1 argument"
+	@echo "8e. entry-end missing args"
+	@echo "--------------------------"
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough entry-end' 2>&1 | rg -F "Error: __gitx_present_passthrough entry-end requires exactly 2 arguments"
+	@echo "8f. entry-end invalid success"
+	@echo "-----------------------------"
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough entry-end 2 demo-repo' 2>&1 | rg -F "Error: __gitx_present_passthrough entry-end success must be 0 or 1"
+
+test-usage-gitx-presenter-contracts: setup-fish
+	@echo "9. USAGE GITX PRESENTER CONTRACTS"
+	@echo "9a. Missing mode argument"
+	@echo "-------------------------"
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx' 2>&1 | rg -F "Error: __gitx_present_usage_gitx requires at least 1 argument"
+	@echo "9b. Unknown mode"
+	@echo "----------------"
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx bad-mode' 2>&1 | rg -F "Error: __gitx_present_usage_gitx unknown mode: bad-mode"
+	@echo "9c. with-repos missing repo names"
+	@echo "---------------------------------"
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx with-repos' 2>&1 | rg -F "Error: __gitx_present_usage_gitx with-repos requires at least 1 repo name"
+	@echo "9d. no-repos missing path"
+	@echo "-------------------------"
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx no-repos' 2>&1 | rg -F "Error: __gitx_present_usage_gitx no-repos requires exactly 1 path argument"
+	@echo "9e. no-repos extra arg"
+	@echo "----------------------"
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx no-repos /tmp extra' 2>&1 | rg -F "Error: __gitx_present_usage_gitx no-repos requires exactly 1 path argument"
+	@echo "9f. missing-repos-dir wrong arity"
+	@echo "---------------------------------"
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx missing-repos-dir' 2>&1 | rg -F "Error: __gitx_present_usage_gitx missing-repos-dir requires exactly 1 path argument"
+	@echo "9g. no-git-args wrong arity"
+	@echo "---------------------------"
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx no-git-args' 2>&1 | rg -F "Error: __gitx_present_usage_gitx no-git-args requires exactly 1 repo name argument"
 
 setup-fish:
 	@command -v fish >/dev/null 2>&1 || { echo "Installing fish shell..."; sudo apt-get update -qq && sudo apt-get install -y -qq fish > /dev/null 2>&1; }
