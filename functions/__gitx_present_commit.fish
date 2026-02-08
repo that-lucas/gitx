@@ -22,13 +22,13 @@ function __gitx_present_commit --description 'Presenter for gitx-commit command 
     end
     
     # Determine icon and color based on dry_run and items_count
-    # Special case: 0 files is a noop (not error), so always use green check
-    # but use brblack color for content when count is 0
+    # Dry-run always uses circle icon, regardless of count
+    # 0 files is a noop (not error), so use green check with brblack color
     set -l icon "✓ "
     set -l result_color green
     
-    if test $dry_run -eq 1 -a $items_count -gt 0
-        # Dry-run with files: neutral icon, brblack color
+    if test $dry_run -eq 1
+        # Dry-run: neutral circle icon, brblack color (always)
         set icon "◉ "
         set result_color brblack
     else if test $items_count -eq 0
