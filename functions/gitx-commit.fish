@@ -68,10 +68,10 @@ function gitx-commit --description 'Commit staged changes for ~/.gitx repo with 
 
         if test $has_staged_status -eq 0
             __gitx_present_commit 1 "$repo_name" 0 "$message"
-            return 1
+            return 0
         end
 
-        __gitx_present_commit 1 "$repo_name" (count $staged_files) "$message"
+        __gitx_present_commit 1 "$repo_name" (count $staged_files) "$message" $dry_files
         return 0
     end
 
@@ -94,7 +94,7 @@ function gitx-commit --description 'Commit staged changes for ~/.gitx repo with 
 
     if test $has_staged_status -eq 0
         __gitx_present_commit 0 "$repo_name" 0 "$message"
-        return 1
+        return 0
     end
 
     set -l run_files
@@ -112,5 +112,5 @@ function gitx-commit --description 'Commit staged changes for ~/.gitx repo with 
         return 1
     end
 
-    __gitx_present_commit 0 "$repo_name" (count $staged_files) "$message"
+    __gitx_present_commit 0 "$repo_name" (count $staged_files) "$message" $run_files
 end
