@@ -18,41 +18,38 @@ function __gitx_present_init --description 'Presenter for gitx-init command outp
         set repo_name $argv[4]
     end
     
-    # Display mode
+    # Empty line before
+    echo
+    
+    # Display mode and message
     if test $dry_run -eq 1
+        # Dry-run mode: cyan icon and text, then grey path
         set_color cyan
-        printf "◉ "
-        set_color --bold
-        printf "Dry-run mode\n"
+        printf "◉ Dry-run\n"
+        set_color normal
+        printf "Bare repo created at "
+        set_color brblack
+        printf "%s\n" "$repo_path"
         set_color normal
     else
+        # Success mode: green icon, then message with green path
         set_color green
         printf "✓ "
-        set_color --bold
-        printf "Init result\n"
+        set_color normal
+        printf "Bare repo created at "
+        set_color green
+        printf "%s\n" "$repo_path"
         set_color normal
     end
+    
+    # Empty line after message
     echo
     
-    # Display repo info
-    set_color brblack
-    printf "  Repo: "
-    set_color normal
-    printf "%s\n" "$repo_path"
-    
-    # Display remote if provided
-    if test -n "$remote_url"
-        set_color brblack
-        printf "  Remote: "
-        set_color normal
-        printf "%s\n" "$remote_url"
+    # Show next step (for both dry-run and actual)
+    if test -n "$repo_name"
+        printf "Next: gitx-track %s file [glob …]\n" "$repo_name"
     end
     
+    # Empty line at end
     echo
-    
-    # Show next step only for non-dry-run
-    if test $dry_run -eq 0 -a -n "$repo_name"
-        printf "Next: gitx-track %s <glob> [<glob-n>]\n" "$repo_name"
-        echo
-    end
 end
