@@ -4,52 +4,52 @@ function __gitx_present_init --description 'Presenter for gitx-init command outp
     # $argv[2] - repo_path
     # $argv[3] - remote_url (optional, can be empty string)
     # $argv[4] - repo_name (for next step suggestion)
-    
-    if test (count $argv) -lt 3
-        echo "Error: __gitx_present_init requires at least 3 arguments" >&2
+
+    if test (count $argv) -lt 4
+        echo "Error: __gitx_present_init requires at least 4 arguments" >&2
         return 1
     end
-    
+
     set -l dry_run $argv[1]
     set -l repo_path $argv[2]
     set -l remote_url $argv[3]
-    set -l repo_name ""
-    if test (count $argv) -ge 4
-        set repo_name $argv[4]
+    set -l repo_name $argv[4]
+
+    set -l icon "✓ "
+    set -l action_color green
+    if test $dry_run -eq 1
+        set icon "◉ "
+        set action_color brblack
     end
-    
+
     # Empty line before
     echo
-    
-    # Display mode and message
+
+    # Display mode
     if test $dry_run -eq 1
-        # Dry-run mode: cyan icon and text, then grey path
         set_color cyan
-        printf "◉ Dry-run\n"
-        set_color normal
-        printf "Bare repo created at "
-        set_color brblack
-        printf "%s\n" "$repo_path"
-        set_color normal
-    else
-        # Success mode: green icon, then message with green path
-        set_color green
-        printf "✓ "
-        set_color normal
-        printf "Bare repo created at "
-        set_color green
-        printf "%s\n" "$repo_path"
-        set_color normal
+        printf "  Dry-run\n"
     end
-    
-    # Empty line after message
-    echo
-    
+
+    set_color $action_color
+    printf $icon
+
+    set_color normal
+    printf "Bare repo created at "
+    set_color $action_color
+    printf "%s\n" "$repo_path"
+    set_color normal
+
     # Show next step (for both dry-run and actual)
-    if test -n "$repo_name"
-        printf "Next: gitx-track %s file [glob …]\n" "$repo_name"
-    end
-    
+    printf "  Next: "
+    set_color cyan
+    printf "gitx-track "
+    set_color $action_color
+    printf $repo_name
+    set_color cyan
+    printf " <file-or-glob> [<file-or-glob> ...]\n"
+    set_color normal
+
     # Empty line at end
     echo
 end
