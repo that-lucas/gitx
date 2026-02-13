@@ -1,5 +1,5 @@
-complete -c gitx-init -d 'Initialize ~/.gitx/repos/<repo>/repo as bare repo with ignore-all exclude'
-complete -c gitx-init -l dry-run -d 'Show exactly what would run'
+complete -c gitx-init -d 'Create a new gitx repo that can track files from anywhere on your system'
+complete -c gitx-init -l dry-run -d 'Preview what would happen without making changes'
 
 function __gitx_init_needs_repo
     set -l words (commandline -opc)

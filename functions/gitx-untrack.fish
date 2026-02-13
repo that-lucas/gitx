@@ -1,4 +1,4 @@
-function gitx-untrack --description 'Untrack files from ~/.gitx bare repo and safely prune auto-unignore entries'
+function gitx-untrack --description 'Stop tracking files from a gitx repo'
     if test (count $argv) -lt 2
         __gitx_present_usage "gitx-untrack" "gitx-untrack [--dry-run] <repo> <file> [file ...]" >&2
         return 1

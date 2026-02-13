@@ -1,4 +1,4 @@
-function gitx-commit --description 'Commit staged changes for ~/.gitx repo with optional message and dry-run'
+function gitx-commit --description 'Commit files changed - if any - with an optional message'
     argparse 'n/dry-run' 'm/message=' -- $argv
     or begin
         __gitx_present_usage "gitx-commit" "gitx-commit [--dry-run] <repo> [-m|--message <text>]" >&2

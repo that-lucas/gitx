@@ -1,4 +1,4 @@
-function gitx-track --description 'Unignore and stage files into ~/.gitx/repos/<repo>/repo'
+function gitx-track --description 'Add files to a gitx repo so they start being tracked'
     if test (count $argv) -lt 2
         __gitx_present_usage "gitx-track" "gitx-track [--dry-run] <repo> <file> [file ...]" >&2
         return 1

@@ -1,5 +1,5 @@
-complete -c gitx-untrack -d 'Untrack file(s) and safely prune unused exclude entries'
-complete -c gitx-untrack -l dry-run -d 'Show exact rm --cached and exclude changes'
+complete -c gitx-untrack -d 'Stop tracking files from a gitx repo'
+complete -c gitx-untrack -l dry-run -d 'Preview which files would stop being tracked'
 
 function __gitx_untrack_needs_repo
     set -l words (commandline -opc)

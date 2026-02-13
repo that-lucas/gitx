@@ -1,4 +1,4 @@
-complete -c gitx -d 'Run git with --git-dir ~/.gitx/repos/<repo>/repo and --work-tree=/'
+complete -c gitx -d 'Run git commands against a gitx repo or all of them at once'
 
 function __gitx_needs_repo
     set -l words (commandline -opc)
