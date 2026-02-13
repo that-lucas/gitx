@@ -355,15 +355,15 @@ function gitx-autosync --description 'Enable, disable, or check periodic gitx co
 
             command launchctl bootout "gui/$uid/com.gitx.autosync" >/dev/null 2>/dev/null
 
-            command launchctl bootstrap "gui/$uid" "$plist_path" >/dev/null 2>/dev/null
-            or begin
-                __gitx_present_problem "gitx-autosync" "-" 0 "Failed to bootstrap launchd agent" "$plist_path"
-                return 1
-            end
-
             command launchctl enable "gui/$uid/com.gitx.autosync" >/dev/null 2>/dev/null
             or begin
                 __gitx_present_problem "gitx-autosync" "-" 0 "Failed to enable launchd agent" "com.gitx.autosync"
+                return 1
+            end
+
+            command launchctl bootstrap "gui/$uid" "$plist_path" >/dev/null 2>/dev/null
+            or begin
+                __gitx_present_problem "gitx-autosync" "-" 0 "Failed to bootstrap launchd agent" "$plist_path"
                 return 1
             end
 
