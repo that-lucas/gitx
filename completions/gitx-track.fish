@@ -1,5 +1,5 @@
-complete -c gitx-track -d 'Unignore path chain in exclude and stage file(s)'
-complete -c gitx-track -l dry-run -d 'Show exact exclude entries and git add commands'
+complete -c gitx-track -d 'Add files to a gitx repo so they start being tracked'
+complete -c gitx-track -l dry-run -d 'Preview which files would be tracked'
 
 function __gitx_track_needs_repo
     set -l words (commandline -opc)

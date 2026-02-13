@@ -1,4 +1,4 @@
-function gitx-init --description 'Initialize ~/.gitx/repos/<repo>/repo as bare repo with ignore-all exclude'
+function gitx-init --description 'Create a new gitx repo that can track files from anywhere on your system'
     if test (count $argv) -lt 1
         __gitx_present_usage "gitx-init" "gitx-init [--dry-run] <repo> [remote-url]" >&2
         return 1

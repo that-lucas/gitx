@@ -1,4 +1,4 @@
-function gitx --description 'Run git for one repo or all ~/.gitx/repos when repo is omitted'
+function gitx --description 'Run git commands against a gitx repo or all of them at once'
     set -l repos_dir "$HOME/.gitx/repos"
 
     if test (count $argv) -lt 1

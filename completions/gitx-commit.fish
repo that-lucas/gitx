@@ -1,5 +1,5 @@
-complete -c gitx-commit -d 'Commit staged changes (default message: local date/time)'
-complete -c gitx-commit -s n -l dry-run -d 'Show exact commit command and staged files'
+complete -c gitx-commit -d 'Commit files changed - if any - with an optional message'
+complete -c gitx-commit -s n -l dry-run -d 'Preview what would be committed'
 complete -c gitx-commit -s m -l message -r -d 'Commit message'
 
 function __gitx_commit_needs_repo
