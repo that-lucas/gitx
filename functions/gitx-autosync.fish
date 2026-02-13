@@ -133,14 +133,15 @@ function __gitx_autosync_write_runner --description 'Write autosync runner scrip
 end
 
 function __gitx_autosync_write_launchd_plist --description 'Write launchd autosync plist'
-    if test (count $argv) -ne 3
-        echo "Error: __gitx_autosync_write_launchd_plist requires exactly 3 arguments" >&2
+    if test (count $argv) -ne 4
+        echo "Error: __gitx_autosync_write_launchd_plist requires exactly 4 arguments" >&2
         return 1
     end
 
     set -l plist_path $argv[1]
     set -l runner_path $argv[2]
     set -l interval_seconds $argv[3]
+    set -l fish_path $argv[4]
 
     set -l launch_agents_dir (path dirname -- "$plist_path")
     command mkdir -p "$launch_agents_dir"
@@ -155,7 +156,7 @@ function __gitx_autosync_write_launchd_plist --description 'Write launchd autosy
         '    <key>ProgramArguments</key>' \
         '    <array>' \
         '      <string>/usr/bin/env</string>' \
-        '      <string>fish</string>' \
+        "      <string>$fish_path</string>" \
         "      <string>$runner_path</string>" \
         '    </array>' \
         "    <key>StartInterval</key><integer>$interval_seconds</integer>" \
@@ -167,8 +168,8 @@ function __gitx_autosync_write_launchd_plist --description 'Write launchd autosy
 end
 
 function __gitx_autosync_write_systemd_units --description 'Write systemd user autosync unit files'
-    if test (count $argv) -ne 4
-        echo "Error: __gitx_autosync_write_systemd_units requires exactly 4 arguments" >&2
+    if test (count $argv) -ne 5
+        echo "Error: __gitx_autosync_write_systemd_units requires exactly 5 arguments" >&2
         return 1
     end
 
@@ -176,6 +177,7 @@ function __gitx_autosync_write_systemd_units --description 'Write systemd user a
     set -l timer_path $argv[2]
     set -l runner_path $argv[3]
     set -l every $argv[4]
+    set -l fish_path $argv[5]
 
     set -l systemd_dir (path dirname -- "$service_path")
     command mkdir -p "$systemd_dir"
@@ -187,7 +189,7 @@ function __gitx_autosync_write_systemd_units --description 'Write systemd user a
         '' \
         '[Service]' \
         'Type=oneshot' \
-        "ExecStart=/usr/bin/env fish $runner_path" > "$service_path"
+        "ExecStart=/usr/bin/env $fish_path $runner_path" > "$service_path"
     or return 1
 
     command printf '%s\n' \
@@ -201,6 +203,19 @@ function __gitx_autosync_write_systemd_units --description 'Write systemd user a
         '' \
         '[Install]' \
         'WantedBy=timers.target' > "$timer_path"
+end
+
+function __gitx_autosync_resolve_fish_path --description 'Resolve absolute path for fish binary'
+    set -l fish_path (command -s fish)
+    if test $status -ne 0 -o -z "$fish_path"
+        return 1
+    end
+
+    if not test -x "$fish_path"
+        return 1
+    end
+
+    echo "$fish_path"
 end
 
 function __gitx_autosync_require_systemd_user --description 'Validate systemd --user availability'
@@ -330,6 +345,12 @@ function gitx-autosync --description 'Enable, disable, or check periodic gitx co
             set repos_csv (string join ',' -- $repo_names)
         end
 
+        set -l fish_path (__gitx_autosync_resolve_fish_path)
+        if test $status -ne 0
+            __gitx_present_problem "gitx-autosync" "-" 0 "Fish binary not found" "Install fish and ensure it is available in PATH"
+            return 1
+        end
+
         __gitx_autosync_write_runner "$runner_path"
         or begin
             __gitx_present_problem "gitx-autosync" "-" 0 "Failed to write autosync runner" "$runner_path"
@@ -347,7 +368,7 @@ function gitx-autosync --description 'Enable, disable, or check periodic gitx co
             set -l plist_path "$HOME/Library/LaunchAgents/com.gitx.autosync.plist"
             set -l every_seconds (__gitx_autosync_duration_to_seconds "$every")
 
-            __gitx_autosync_write_launchd_plist "$plist_path" "$runner_path" "$every_seconds"
+            __gitx_autosync_write_launchd_plist "$plist_path" "$runner_path" "$every_seconds" "$fish_path"
             or begin
                 __gitx_present_problem "gitx-autosync" "-" 0 "Failed to write launchd plist" "$plist_path"
                 return 1
@@ -376,7 +397,7 @@ function gitx-autosync --description 'Enable, disable, or check periodic gitx co
             set -l service_path "$HOME/.config/systemd/user/gitx-autosync.service"
             set -l timer_path "$HOME/.config/systemd/user/gitx-autosync.timer"
 
-            __gitx_autosync_write_systemd_units "$service_path" "$timer_path" "$runner_path" "$every"
+            __gitx_autosync_write_systemd_units "$service_path" "$timer_path" "$runner_path" "$every" "$fish_path"
             or begin
                 __gitx_present_problem "gitx-autosync" "-" 0 "Failed to write systemd user units" "$HOME/.config/systemd/user"
                 return 1
