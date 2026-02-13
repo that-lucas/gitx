@@ -352,12 +352,6 @@ function gitx-autosync --description 'Enable, disable, or check periodic gitx co
             return 1
         end
 
-        __gitx_autosync_write_config "$config_path" 1 "$every" "$scope" "$repos_csv" "$backend"
-        or begin
-            __gitx_present_problem "gitx-autosync" "-" 0 "Failed to write autosync config" "$config_path"
-            return 1
-        end
-
         if test "$backend" = "launchd"
             set -l uid (command id -u)
             set -l plist_path "$HOME/Library/LaunchAgents/com.gitx.autosync.plist"
@@ -411,6 +405,12 @@ function gitx-autosync --description 'Enable, disable, or check periodic gitx co
             end
         end
 
+        __gitx_autosync_write_config "$config_path" 1 "$every" "$scope" "$repos_csv" "$backend"
+        or begin
+            __gitx_present_problem "gitx-autosync" "-" 0 "Failed to write autosync config" "$config_path"
+            return 1
+        end
+
         __gitx_present_autosync on 0 "$backend" "$every" "$scope" $repo_names
         return 0
     end
@@ -429,10 +429,31 @@ function gitx-autosync --description 'Enable, disable, or check periodic gitx co
 
         if test "$backend" = "launchd"
             set -l uid (command id -u)
+            set -l was_active 0
+            command launchctl print "gui/$uid/com.gitx.autosync" >/dev/null 2>/dev/null
+            if test $status -eq 0
+                set was_active 1
+            end
+
             command launchctl disable "gui/$uid/com.gitx.autosync" >/dev/null 2>/dev/null
-            command launchctl bootout "gui/$uid/com.gitx.autosync" >/dev/null 2>/dev/null
+            or begin
+                __gitx_present_problem "gitx-autosync" "-" 0 "Failed to disable launchd agent" "com.gitx.autosync"
+                return 1
+            end
+
+            if test $was_active -eq 1
+                command launchctl bootout "gui/$uid/com.gitx.autosync" >/dev/null 2>/dev/null
+                or begin
+                    __gitx_present_problem "gitx-autosync" "-" 0 "Failed to stop launchd agent" "com.gitx.autosync"
+                    return 1
+                end
+            end
         else
             command systemctl --user disable --now gitx-autosync.timer >/dev/null 2>/dev/null
+            or begin
+                __gitx_present_problem "gitx-autosync" "-" 0 "Failed to disable systemd user timer" "gitx-autosync.timer"
+                return 1
+            end
         end
 
         __gitx_autosync_write_config "$config_path" 0 "$__gitx_autosync_cfg_every" "$__gitx_autosync_cfg_scope" "$__gitx_autosync_cfg_repos" "$backend"
@@ -487,6 +508,11 @@ function gitx-autosync --description 'Enable, disable, or check periodic gitx co
     set -l repo_names
     if test "$__gitx_autosync_cfg_scope" = "selected" -a -n "$__gitx_autosync_cfg_repos"
         set repo_names (string split ',' -- "$__gitx_autosync_cfg_repos")
+    end
+
+    if test "$__gitx_autosync_cfg_scope" = "selected" -a (count $repo_names) -eq 0
+        __gitx_present_problem "gitx-autosync" "-" "$dry_run" "Invalid autosync config" "scope=selected requires repos; re-run gitx-autosync on [--repo <name> ...]"
+        return 1
     end
 
     __gitx_present_autosync status "$dry_run" "$backend" "$enabled_status" "$active_status" "$__gitx_autosync_cfg_every" "$__gitx_autosync_cfg_scope" $repo_names

@@ -219,12 +219,18 @@ function __gitx_present_autosync --description 'Presenter for gitx-autosync comm
 
             set -l icon "◉ "
             set -l result_color brblack
+            set -l status_hint
             if test "$enabled" = "1" -a "$active" = "1"
                 set icon "✓ "
                 set result_color green
             else if test "$enabled" = "1" -a "$active" = "0"
                 set icon "✗ "
                 set result_color red
+                set status_hint "Enabled but inactive. Re-run gitx-autosync on to refresh scheduler state."
+            else if test "$enabled" = "0" -a "$active" = "1"
+                set icon "✗ "
+                set result_color red
+                set status_hint "Active while disabled. Run gitx-autosync off again to stop the scheduler."
             end
 
             echo
@@ -291,6 +297,14 @@ function __gitx_present_autosync --description 'Presenter for gitx-autosync comm
                     printf "%s\n" "$repo_name"
                     set_color normal
                 end
+            end
+
+            if test -n "$status_hint"
+                echo
+                printf "  Hint: "
+                set_color cyan
+                printf "%s\n" "$status_hint"
+                set_color normal
             end
 
             echo

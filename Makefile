@@ -271,6 +271,9 @@ test-autosync-presenter-contracts: setup-fish
 	@echo "11h. status invalid active"
 	@echo "--------------------------"
 	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync status 0 launchd 1 2 15m all' 2>&1 | rg -F "Error: __gitx_present_autosync status active must be 0 or 1" || exit 1
+	@echo "11i. status warns on active while disabled"
+	@echo "------------------------------------------"
+	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync status 0 launchd 0 1 15m all' 2>&1 | rg -F "Active while disabled." || exit 1
 	@echo ""
 	@echo "  ✓ All autosync presenter contract tests passed"
 
@@ -298,6 +301,25 @@ test-autosync-command-behavior: setup-fish
 	command chmod +x "$$tmpdir/bin/uname" && \
 	HOME="$$tmpdir" PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync 1 --dry-run --repo work --repo settings' 2>&1 | rg -F "work" || { command rm -rf "$$tmpdir"; exit 1; } && \
 	HOME="$$tmpdir" PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync 1 --dry-run --repo work --repo settings' 2>&1 | rg -F "settings" || { command rm -rf "$$tmpdir"; exit 1; } && \
+	command rm -rf "$$tmpdir"
+	@echo "12e. off fails when launchd disable fails"
+	@echo "-----------------------------------------"
+	@tmpdir=$$(mktemp -d) && \
+	command mkdir -p "$$tmpdir/bin" && \
+	command printf '%s\n' '#!/usr/bin/env bash' 'echo Darwin' > "$$tmpdir/bin/uname" && \
+	command printf '%s\n' '#!/usr/bin/env bash' 'if [ "$$1" = "print" ]; then exit 1; fi' 'if [ "$$1" = "disable" ]; then exit 1; fi' 'if [ "$$1" = "print-disabled" ]; then exit 0; fi' 'exit 0' > "$$tmpdir/bin/launchctl" && \
+	command chmod +x "$$tmpdir/bin/uname" "$$tmpdir/bin/launchctl" && \
+	HOME="$$tmpdir" PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync off' 2>&1 | rg -F "Failed to disable launchd agent" || { command rm -rf "$$tmpdir"; exit 1; } && \
+	command rm -rf "$$tmpdir"
+	@echo "12f. status fails on invalid selected config"
+	@echo "--------------------------------------------"
+	@tmpdir=$$(mktemp -d) && \
+	command mkdir -p "$$tmpdir/bin" "$$tmpdir/.gitx/autosync" && \
+	command printf '%s\n' '#!/usr/bin/env bash' 'echo Darwin' > "$$tmpdir/bin/uname" && \
+	command printf '%s\n' '#!/usr/bin/env bash' 'if [ "$$1" = "print" ]; then exit 1; fi' 'if [ "$$1" = "print-disabled" ]; then exit 0; fi' 'exit 0' > "$$tmpdir/bin/launchctl" && \
+	command printf '%s\n' 'enabled=1' 'every=1m' 'scope=selected' 'repos=' 'backend=launchd' > "$$tmpdir/.gitx/autosync/config" && \
+	command chmod +x "$$tmpdir/bin/uname" "$$tmpdir/bin/launchctl" && \
+	HOME="$$tmpdir" PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync status' 2>&1 | rg -F "Invalid autosync config" || { command rm -rf "$$tmpdir"; exit 1; } && \
 	command rm -rf "$$tmpdir"
 	@echo ""
 	@echo "  ✓ Autosync command behavior checks passed"
