@@ -290,6 +290,15 @@ test-autosync-command-behavior: setup-fish
 	command chmod +x "$$tmpdir/bin/uname" && \
 	PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync on' 2>&1 | rg -F "systemctl command not found" || { command rm -rf "$$tmpdir"; exit 1; } && \
 	command rm -rf "$$tmpdir"
+	@echo "12d. Repeated --repo values are all honored"
+	@echo "--------------------------------------------"
+	@tmpdir=$$(mktemp -d) && \
+	command mkdir -p "$$tmpdir/bin" "$$tmpdir/.gitx/repos/work/repo" "$$tmpdir/.gitx/repos/settings/repo" && \
+	command printf '%s\n' '#!/usr/bin/env bash' 'echo Darwin' > "$$tmpdir/bin/uname" && \
+	command chmod +x "$$tmpdir/bin/uname" && \
+	HOME="$$tmpdir" PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync 1 --dry-run --repo work --repo settings' 2>&1 | rg -F "work" || { command rm -rf "$$tmpdir"; exit 1; } && \
+	HOME="$$tmpdir" PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync 1 --dry-run --repo work --repo settings' 2>&1 | rg -F "settings" || { command rm -rf "$$tmpdir"; exit 1; } && \
+	command rm -rf "$$tmpdir"
 	@echo ""
 	@echo "  ✓ Autosync command behavior checks passed"
 

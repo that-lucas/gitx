@@ -13,7 +13,7 @@ function __gitx_autosync_duration_to_seconds --description 'Convert autosync int
 
     set -l every $argv[1]
     if not string match -qr '^[1-9][0-9]*[mh]$' -- "$every"
-        echo "Error: __gitx_autosync_duration_to_seconds invalid duration: $every" >&2
+        echo "Error: __gitx_autosync_duration_to_seconds: invalid duration: $every" >&2
         return 1
     end
 
@@ -241,7 +241,7 @@ function __gitx_autosync_require_systemd_user --description 'Validate systemd --
 end
 
 function gitx-autosync --description 'Enable, disable, or check periodic gitx commit and push'
-    argparse 'n/dry-run' 'e/every=' 'r/repo=' 'a/all' -- $argv
+    argparse 'n/dry-run' 'e/every=' 'r/repo=+' 'a/all' -- $argv
     or begin
         __gitx_autosync_present_usage >&2
         return 1

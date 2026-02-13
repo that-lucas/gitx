@@ -85,13 +85,13 @@ function __gitx_present_autosync --description 'Presenter for gitx-autosync comm
             printf "%s\n" "$every"
             set_color normal
 
-            printf "  Scope: "
+            printf "  Repos: "
             set_color $result_color
             set_color --bold
             if test "$scope" = "all"
                 printf "all\n"
             else
-                printf "selected (%d)\n" (count $repo_names)
+                printf "%d\n" (count $repo_names)
             end
             set_color normal
 
@@ -273,13 +273,13 @@ function __gitx_present_autosync --description 'Presenter for gitx-autosync comm
             printf "%s\n" "$every"
             set_color normal
 
-            printf "  Scope: "
+            printf "  Repos: "
             set_color $result_color
             set_color --bold
             if test "$scope" = "all"
                 printf "all\n"
             else
-                printf "selected (%d)\n" (count $repo_names)
+                printf "%d\n" (count $repo_names)
             end
             set_color normal
 
