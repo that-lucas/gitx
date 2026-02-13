@@ -192,7 +192,7 @@ demo-usage-presenter: setup-fish
 	@fish -c 'source functions/__gitx_present_usage.fish; __gitx_present_usage "gitx-commit" "gitx-commit [--dry-run] <repo> [-m|--message <text>]"'
 	@echo "8i. gitx-autosync usage"
 	@echo "------------------------"
-	@fish -c 'source functions/__gitx_present_usage.fish; __gitx_present_usage "gitx-autosync" "gitx-autosync [--dry-run] on [--every <duration>] [--repo <name> ... | --all]" "gitx-autosync [--dry-run] off" "gitx-autosync [--dry-run] status"'
+	@fish -c 'source functions/__gitx_present_usage.fish; __gitx_present_usage "gitx-autosync" "gitx-autosync [--dry-run] on [--every <duration>] [--repo <name> ...]" "gitx-autosync [--dry-run] off" "gitx-autosync [--dry-run] status"'
 
 test-presenter-contracts: setup-fish test-passthrough-presenter-contracts test-usage-gitx-presenter-contracts test-autosync-presenter-contracts
 
@@ -279,9 +279,9 @@ test-autosync-command-behavior: setup-fish
 	@echo "12a. Invalid --every rejects unsupported units"
 	@echo "----------------------------------------------"
 	@fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync on --every 30s' 2>&1 | rg -F "Invalid --every value" || exit 1
-	@echo "12b. --repo and --all are mutually exclusive"
-	@echo "--------------------------------------------"
-	@fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync on --all --repo demo-repo' 2>&1 | rg -F "Cannot combine --all with --repo" || exit 1
+	@echo "12b. --all is rejected as unknown flag"
+	@echo "--------------------------------------"
+	@fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync on --all' 2>&1 | rg -F -- "--all: unknown option" || exit 1
 	@echo "12c. Linux hard-fail when systemd --user unavailable"
 	@echo "----------------------------------------------------"
 	@tmpdir=$$(mktemp -d) && \

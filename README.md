@@ -80,7 +80,7 @@ gitx-init    --dry-run <repo> [remote-url]     # Create/setup repo
 gitx-track   --dry-run <repo> <glob> [glob-n]  # Start tracking files
 gitx-untrack --dry-run <repo> <glob> [glob-n]  # Stop tracking files
 gitx-commit  --dry-run <repo> [-m "<message>"] # Commit tracked changes
-gitx-autosync --dry-run on [--every <duration>] [--repo <name> ... | --all] # Configure periodic commit+push
+gitx-autosync --dry-run on [--every <duration>] [--repo <name> ...] # Configure periodic commit+push
 gitx-autosync --dry-run off                    # Disable periodic sync
 gitx-autosync --dry-run status                 # Show periodic sync status
 gitx                   <repo> <git-args...>    # Run raw git command for one repo
@@ -89,7 +89,7 @@ gitx                          <git-args...>    # Run raw git command across all 
 
 Remove `--dry-run` to actually execute the commands.
 
-There's auto-completion for repo names and for the `--dry-run` flag as well.
+Every command in this README has Fish auto-completion, including repo names, command modes, flags, and common values (for example `gitx-autosync` mode aliases and `--every` interval suggestions).
 
 ## Basic workflow
 
@@ -152,4 +152,4 @@ gitx-track  configs ~/**/*.env ~/**/*.env.*
 
 ## Autocomplete
 
-Fish completions are included for all `gitx` commands, including repo name completion from any repo you created with `gitx-init` and the `--dry-run` flag.
+Fish completions are included for all `gitx` commands and options: repo names from repos created with `gitx-init`, command modes/aliases (`on|true|1`, `off|false|0`, `status`), flags like `--dry-run`, `--repo`, `--message`, and common values such as `--every` interval suggestions.

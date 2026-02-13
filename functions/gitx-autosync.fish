@@ -1,6 +1,6 @@
 function __gitx_autosync_present_usage --description 'Show usage for gitx-autosync'
     __gitx_present_usage "gitx-autosync" \
-        "gitx-autosync [--dry-run] on [--every <duration>] [--repo <name> ... | --all]" \
+        "gitx-autosync [--dry-run] on [--every <duration>] [--repo <name> ...]" \
         "gitx-autosync [--dry-run] off" \
         "gitx-autosync [--dry-run] status"
 end
@@ -241,7 +241,7 @@ function __gitx_autosync_require_systemd_user --description 'Validate systemd --
 end
 
 function gitx-autosync --description 'Enable, disable, or check periodic gitx commit and push'
-    argparse 'n/dry-run' 'e/every=' 'r/repo=+' 'a/all' -- $argv
+    argparse 'n/dry-run' 'e/every=' 'r/repo=+' -- $argv
     or begin
         __gitx_autosync_present_usage >&2
         return 1
@@ -272,7 +272,7 @@ function gitx-autosync --description 'Enable, disable, or check periodic gitx co
     end
 
     if test "$mode" != "on"
-        if set -q _flag_every; or set -q _flag_repo; or set -q _flag_all
+        if set -q _flag_every; or set -q _flag_repo
             __gitx_autosync_present_usage >&2
             return 1
         end
@@ -307,11 +307,6 @@ function gitx-autosync --description 'Enable, disable, or check periodic gitx co
 
         if not string match -qr '^[1-9][0-9]*[mh]$' -- "$every"
             __gitx_present_problem "gitx-autosync" "-" "$dry_run" "Invalid --every value" "Use minutes or hours, e.g. 15m or 2h"
-            return 1
-        end
-
-        if set -q _flag_all; and set -q _flag_repo
-            __gitx_present_problem "gitx-autosync" "-" "$dry_run" "Cannot combine --all with --repo"
             return 1
         end
 
