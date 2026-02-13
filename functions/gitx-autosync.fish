@@ -1,3 +1,7 @@
+if not functions -q __gitx_autosync_load_config
+    source (path dirname -- (status filename))/__gitx_autosync_load_config.fish
+end
+
 function __gitx_autosync_present_usage --description 'Show usage for gitx-autosync'
     __gitx_present_usage "gitx-autosync" \
         "gitx-autosync [--dry-run] on [--every <duration>] [--repo <name> ...]" \
@@ -29,62 +33,28 @@ function __gitx_autosync_duration_to_seconds --description 'Convert autosync int
     math "$amount * 3600"
 end
 
-function __gitx_autosync_load_config --description 'Load autosync config into globals'
-    if test (count $argv) -ne 2
-        echo "Error: __gitx_autosync_load_config requires exactly 2 arguments" >&2
+function __gitx_autosync_duration_to_systemd --description 'Convert autosync interval to systemd format'
+    if test (count $argv) -ne 1
+        echo "Error: __gitx_autosync_duration_to_systemd requires exactly 1 argument" >&2
         return 1
     end
 
-    set -l config_path $argv[1]
-    set -l default_backend $argv[2]
+    set -l every $argv[1]
+    if not string match -qr '^[1-9][0-9]*[mh]$' -- "$every"
+        echo "Error: __gitx_autosync_duration_to_systemd: invalid duration: $every" >&2
+        return 1
+    end
 
-    set -g __gitx_autosync_cfg_enabled 0
-    set -g __gitx_autosync_cfg_every 15m
-    set -g __gitx_autosync_cfg_scope all
-    set -g __gitx_autosync_cfg_repos ""
-    set -g __gitx_autosync_cfg_backend "$default_backend"
+    set -l unit (string sub -s -1 -- "$every")
+    set -l amount_len (math (string length -- "$every") - 1)
+    set -l amount (string sub -s 1 -l "$amount_len" -- "$every")
 
-    if not test -f "$config_path"
+    if test "$unit" = "m"
+        echo "$amount"min
         return 0
     end
 
-    while read -l line
-        set -l trimmed (string trim -- "$line")
-        if test -z "$trimmed"
-            continue
-        end
-
-        set -l parts (string split -m 1 '=' -- "$trimmed")
-        if test (count $parts) -ne 2
-            continue
-        end
-
-        set -l key $parts[1]
-        set -l value $parts[2]
-
-        switch "$key"
-            case 'enabled'
-                if test "$value" = "0" -o "$value" = "1"
-                    set -g __gitx_autosync_cfg_enabled "$value"
-                end
-            case 'every'
-                if string match -qr '^[1-9][0-9]*[mh]$' -- "$value"
-                    set -g __gitx_autosync_cfg_every "$value"
-                end
-            case 'scope'
-                if test "$value" = "all" -o "$value" = "selected"
-                    set -g __gitx_autosync_cfg_scope "$value"
-                end
-            case 'repos'
-                set -g __gitx_autosync_cfg_repos "$value"
-            case 'backend'
-                if test "$value" = "launchd" -o "$value" = "systemd-user"
-                    set -g __gitx_autosync_cfg_backend "$value"
-                end
-        end
-    end < "$config_path"
-
-    return 0
+    echo "$amount"h
 end
 
 function __gitx_autosync_write_config --description 'Write autosync config file'
@@ -126,10 +96,13 @@ function __gitx_autosync_write_runner --description 'Write autosync runner scrip
 
     command printf '%s\n' \
         '#!/usr/bin/env fish' \
+        'set -l autosync_dir "$HOME/.gitx/autosync"' \
+        'command mkdir -p "$autosync_dir" >/dev/null 2>/dev/null' \
+        'set -l log_path "$autosync_dir/"(command date +%Y%m%d)".log"' \
         'if test -f "$HOME/.config/fish/config.fish"' \
         '    source "$HOME/.config/fish/config.fish"' \
         'end' \
-        '__gitx_autosync_run' > "$runner_path"
+        '__gitx_autosync_run >> "$log_path" 2>&1' > "$runner_path"
 end
 
 function __gitx_autosync_write_launchd_plist --description 'Write launchd autosync plist'
@@ -178,6 +151,8 @@ function __gitx_autosync_write_systemd_units --description 'Write systemd user a
     set -l runner_path $argv[3]
     set -l every $argv[4]
     set -l fish_path $argv[5]
+    set -l every_systemd (__gitx_autosync_duration_to_systemd "$every")
+    or return 1
 
     set -l systemd_dir (path dirname -- "$service_path")
     command mkdir -p "$systemd_dir"
@@ -198,7 +173,7 @@ function __gitx_autosync_write_systemd_units --description 'Write systemd user a
         '' \
         '[Timer]' \
         'OnBootSec=30s' \
-        "OnUnitActiveSec=$every" \
+        "OnUnitActiveSec=$every_systemd" \
         'Persistent=true' \
         '' \
         '[Install]' \
@@ -479,12 +454,12 @@ function gitx-autosync --description 'Enable, disable, or check periodic gitx co
 
         set -l disabled_lines (command launchctl print-disabled "gui/$uid" 2>/dev/null)
         for line in $disabled_lines
-            if string match -qr '"com\.gitx\.autosync" => enabled' -- "$line"
+            if string match -qr '"com\.gitx\.autosync" => (enabled|false)' -- "$line"
                 set enabled_status 1
                 break
             end
 
-            if string match -qr '"com\.gitx\.autosync" => disabled' -- "$line"
+            if string match -qr '"com\.gitx\.autosync" => (disabled|true)' -- "$line"
                 set enabled_status 0
                 break
             end

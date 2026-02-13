@@ -1,3 +1,7 @@
+if not functions -q __gitx_autosync_load_config
+    source (path dirname -- (status filename))/__gitx_autosync_load_config.fish
+end
+
 function __gitx_autosync_run --description 'Run one autosync cycle for configured gitx repos'
     set -l autosync_dir "$HOME/.gitx/autosync"
     set -l config_path "$autosync_dir/config"
@@ -8,39 +12,10 @@ function __gitx_autosync_run --description 'Run one autosync cycle for configure
         return 0
     end
 
-    set -l cfg_enabled 0
-    set -l cfg_scope all
-    set -l cfg_repos
+    __gitx_autosync_load_config "$config_path" launchd
+    or return 1
 
-    while read -l line
-        set -l trimmed (string trim -- "$line")
-        if test -z "$trimmed"
-            continue
-        end
-
-        set -l parts (string split -m 1 '=' -- "$trimmed")
-        if test (count $parts) -ne 2
-            continue
-        end
-
-        set -l key $parts[1]
-        set -l value $parts[2]
-
-        switch "$key"
-            case 'enabled'
-                if test "$value" = "0" -o "$value" = "1"
-                    set cfg_enabled "$value"
-                end
-            case 'scope'
-                if test "$value" = "all" -o "$value" = "selected"
-                    set cfg_scope "$value"
-                end
-            case 'repos'
-                set cfg_repos "$value"
-        end
-    end < "$config_path"
-
-    if test "$cfg_enabled" != "1"
+    if test "$__gitx_autosync_cfg_enabled" != "1"
         return 0
     end
 
@@ -50,7 +25,7 @@ function __gitx_autosync_run --description 'Run one autosync cycle for configure
     end
 
     set -l repo_names
-    if test "$cfg_scope" = "all"
+    if test "$__gitx_autosync_cfg_scope" = "all"
         if test -d "$repos_dir"
             for d in "$repos_dir"/*
                 if test -d "$d/repo"
@@ -58,8 +33,8 @@ function __gitx_autosync_run --description 'Run one autosync cycle for configure
                 end
             end
         end
-    else if test -n "$cfg_repos"
-        set repo_names (string split ',' -- "$cfg_repos")
+    else if test -n "$__gitx_autosync_cfg_repos"
+        set repo_names (string split ',' -- "$__gitx_autosync_cfg_repos")
     end
 
     set -l any_failure 0
@@ -75,7 +50,7 @@ function __gitx_autosync_run --description 'Run one autosync cycle for configure
             continue
         end
 
-        gitx-commit "$repo_name" >/dev/null 2>/dev/null
+        gitx-commit "$repo_name"
         if test $status -ne 0
             set any_failure 1
             continue
@@ -86,7 +61,7 @@ function __gitx_autosync_run --description 'Run one autosync cycle for configure
             continue
         end
 
-        gitx "$repo_name" push >/dev/null 2>/dev/null
+        gitx "$repo_name" push
         if test $status -ne 0
             set any_failure 1
         end
