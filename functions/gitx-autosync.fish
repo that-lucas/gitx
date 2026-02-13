@@ -33,30 +33,6 @@ function __gitx_autosync_duration_to_seconds --description 'Convert autosync int
     math "$amount * 3600"
 end
 
-function __gitx_autosync_duration_to_systemd --description 'Convert autosync interval to systemd format'
-    if test (count $argv) -ne 1
-        echo "Error: __gitx_autosync_duration_to_systemd requires exactly 1 argument" >&2
-        return 1
-    end
-
-    set -l every $argv[1]
-    if not string match -qr '^[1-9][0-9]*[mh]$' -- "$every"
-        echo "Error: __gitx_autosync_duration_to_systemd: invalid duration: $every" >&2
-        return 1
-    end
-
-    set -l unit (string sub -s -1 -- "$every")
-    set -l amount_len (math (string length -- "$every") - 1)
-    set -l amount (string sub -s 1 -l "$amount_len" -- "$every")
-
-    if test "$unit" = "m"
-        echo "$amount"min
-        return 0
-    end
-
-    echo "$amount"h
-end
-
 function __gitx_autosync_write_config --description 'Write autosync config file'
     if test (count $argv) -ne 6
         echo "Error: __gitx_autosync_write_config requires exactly 6 arguments" >&2
@@ -151,8 +127,6 @@ function __gitx_autosync_write_systemd_units --description 'Write systemd user a
     set -l runner_path $argv[3]
     set -l every $argv[4]
     set -l fish_path $argv[5]
-    set -l every_systemd (__gitx_autosync_duration_to_systemd "$every")
-    or return 1
 
     set -l systemd_dir (path dirname -- "$service_path")
     command mkdir -p "$systemd_dir"
@@ -173,7 +147,7 @@ function __gitx_autosync_write_systemd_units --description 'Write systemd user a
         '' \
         '[Timer]' \
         'OnBootSec=30s' \
-        "OnUnitActiveSec=$every_systemd" \
+        "OnUnitActiveSec=$every" \
         'Persistent=true' \
         '' \
         '[Install]' \
