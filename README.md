@@ -58,13 +58,13 @@ source ~/.config/fish/config.fish
 2. Optional: For immediate command descriptions in completion menus, add this to `~/.config/fish/config.fish`:
 
 ```sh
-functions gitx gitx-init gitx-track gitx-untrack gitx-commit >/dev/null 2>/dev/null
+functions gitx gitx-init gitx-track gitx-untrack gitx-commit gitx-autosync >/dev/null 2>/dev/null
 ```
 
 and reload with `source ~/.config/fish/config.fish` or simply run
 
 ```sh
-echo 'functions gitx gitx-init gitx-track gitx-untrack gitx-commit >/dev/null 2>/dev/null' >> ~/.config/fish/config.fish
+echo 'functions gitx gitx-init gitx-track gitx-untrack gitx-commit gitx-autosync >/dev/null 2>/dev/null' >> ~/.config/fish/config.fish
 
 source ~/.config/fish/config.fish
 ```
@@ -80,6 +80,9 @@ gitx-init    --dry-run <repo> [remote-url]     # Create/setup repo
 gitx-track   --dry-run <repo> <glob> [glob-n]  # Start tracking files
 gitx-untrack --dry-run <repo> <glob> [glob-n]  # Stop tracking files
 gitx-commit  --dry-run <repo> [-m "<message>"] # Commit tracked changes
+gitx-autosync --dry-run on [--every <duration>] [--repo <name> ... | --all] # Configure periodic commit+push
+gitx-autosync --dry-run off                    # Disable periodic sync
+gitx-autosync --dry-run status                 # Show periodic sync status
 gitx                   <repo> <git-args...>    # Run raw git command for one repo
 gitx                          <git-args...>    # Run raw git command across all repos
 ```
@@ -94,6 +97,35 @@ There's auto-completion for repo names and for the `--dry-run` flag as well.
 2. Track files you care about (and untrack those you don't want)
 3. Commit changes
 4. Push to remote
+
+## Autosync (every 15m by default)
+
+`gitx-autosync` can run `gitx-commit` and `gitx <repo> push` periodically.
+
+- `on|true|1`: enable autosync
+- `off|false|0`: disable autosync
+- `status`: show enabled/active state plus current config
+
+Examples:
+
+```sh
+# All repos every 15 minutes (default)
+gitx-autosync on
+
+# One or more repos every 2 hours
+gitx-autosync on --every 2h --repo configs --repo dotfiles
+
+# Disable autosync
+gitx-autosync off
+
+# Check current state
+gitx-autosync status
+```
+
+Platform backends:
+
+- macOS: `launchd` user agent
+- Linux: `systemd --user` timer/service
 
 ## Quick recipe (GitHub with `gh` CLI + `gitx`)
 
