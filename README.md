@@ -93,14 +93,14 @@ Every `gitx` command includes Fish auto-completion. Command modes, flags, common
 
 ## Basic workflow
 
-1. Initialize a repo
-2. Track files you care about (and untrack those you don't want)
-3. Commit changes
-4. Push to remote
+- Initialize a repo
+- Track files you care about (and untrack those you don't want)
+  - Commit changes and, optionally, push to remote, or
+  - Set `gitx-autosync` to do it for you periodically
 
 ## Autosync (every 15m by default)
 
-`gitx-autosync` can run `gitx-commit` and `gitx <repo> push` periodically.
+`gitx-autosync` runs `gitx-commit` and `gitx <repo> push` (if a remote is set) periodically.
 
 - `on|true|1`: enable autosync
 - `off|false|0`: disable autosync
