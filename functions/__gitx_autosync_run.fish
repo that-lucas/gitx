@@ -13,7 +13,13 @@ function __gitx_autosync_run --description 'Run one autosync cycle for configure
         return 0
     end
 
-    __gitx_autosync_load_config "$config_path" launchd
+    set -l current_platform (command uname)
+    set -l default_backend launchd
+    if test "$current_platform" = "Linux"
+        set default_backend systemd-user
+    end
+
+    __gitx_autosync_load_config "$config_path" "$default_backend"
     or return 1
 
     if test "$__gitx_autosync_cfg_enabled" != "1"

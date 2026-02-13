@@ -78,7 +78,15 @@ function __gitx_autosync_write_runner --description 'Write autosync runner scrip
         'if test -f "$HOME/.config/fish/config.fish"' \
         '    source "$HOME/.config/fish/config.fish"' \
         'end' \
-        '__gitx_autosync_run >> "$log_path" 2>&1' > "$runner_path"
+        '__gitx_autosync_run >> "$log_path" 2>&1' \
+        'set -l log_paths (command find "$autosync_dir" -maxdepth 1 -type f -name "*.log" 2>/dev/null)' \
+        'if test (count $log_paths) -gt 30' \
+        '    set -l sorted_log_paths (string split "\n" -- (command printf "%s\n" $log_paths | command sort))' \
+        '    set -l remove_count (math (count $sorted_log_paths) - 30)' \
+        '    for old_log_path in $sorted_log_paths[1..$remove_count]' \
+        '        command rm -f -- "$old_log_path" >/dev/null 2>/dev/null' \
+        '    end' \
+        'end' > "$runner_path"
 end
 
 function __gitx_autosync_write_launchd_plist --description 'Write launchd autosync plist'
