@@ -5,6 +5,8 @@ demo-presenters: demo-all-presenters
 demo-all-presenters: setup-fish demo-init-presenter demo-track-presenter demo-untrack-presenter demo-commit-presenter demo-passthrough-presenter demo-problem-presenter demo-usage-presenter
 
 test-all-presenters: setup-fish demo-all-presenters test-presenter-contracts
+	@echo ""
+	@echo "✓ All tests passed successfully"
 
 demo-init-presenter: setup-fish
 	@echo "1. INIT PRESENTER"
@@ -171,46 +173,50 @@ test-passthrough-presenter-contracts: setup-fish
 	@echo "8. PASSTHROUGH PRESENTER CONTRACTS"
 	@echo "8a. Missing mode argument"
 	@echo "-------------------------"
-	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough' 2>&1 | rg -F "Error: __gitx_present_passthrough requires at least 1 argument"
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough' 2>&1 | rg -F "Error: __gitx_present_passthrough requires at least 1 argument" || exit 1
 	@echo "8b. Unknown mode"
 	@echo "----------------"
-	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough invalid-mode' 2>&1 | rg -F "Error: __gitx_present_passthrough unknown mode: invalid-mode"
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough invalid-mode' 2>&1 | rg -F "Error: __gitx_present_passthrough unknown mode: invalid-mode" || exit 1
 	@echo "8c. begin with extra args"
 	@echo "-------------------------"
-	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough begin extra' 2>&1 | rg -F "Error: __gitx_present_passthrough begin takes no extra arguments"
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough begin extra' 2>&1 | rg -F "Error: __gitx_present_passthrough begin takes no extra arguments" || exit 1
 	@echo "8d. entry-start missing repo"
 	@echo "----------------------------"
-	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough entry-start' 2>&1 | rg -F "Error: __gitx_present_passthrough entry-start requires exactly 1 argument"
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough entry-start' 2>&1 | rg -F "Error: __gitx_present_passthrough entry-start requires exactly 1 argument" || exit 1
 	@echo "8e. entry-end missing args"
 	@echo "--------------------------"
-	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough entry-end' 2>&1 | rg -F "Error: __gitx_present_passthrough entry-end requires exactly 2 arguments"
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough entry-end' 2>&1 | rg -F "Error: __gitx_present_passthrough entry-end requires exactly 2 arguments" || exit 1
 	@echo "8f. entry-end invalid success"
 	@echo "-----------------------------"
-	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough entry-end 2 demo-repo' 2>&1 | rg -F "Error: __gitx_present_passthrough entry-end success must be 0 or 1"
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough entry-end 2 demo-repo' 2>&1 | rg -F "Error: __gitx_present_passthrough entry-end success must be 0 or 1" || exit 1
+	@echo ""
+	@echo "  ✓ All passthrough presenter contract tests passed"
 
 test-usage-gitx-presenter-contracts: setup-fish
 	@echo "9. USAGE GITX PRESENTER CONTRACTS"
 	@echo "9a. Missing mode argument"
 	@echo "-------------------------"
-	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx' 2>&1 | rg -F "Error: __gitx_present_usage_gitx requires at least 1 argument"
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx' 2>&1 | rg -F "Error: __gitx_present_usage_gitx requires at least 1 argument" || exit 1
 	@echo "9b. Unknown mode"
 	@echo "----------------"
-	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx bad-mode' 2>&1 | rg -F "Error: __gitx_present_usage_gitx unknown mode: bad-mode"
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx bad-mode' 2>&1 | rg -F "Error: __gitx_present_usage_gitx unknown mode: bad-mode" || exit 1
 	@echo "9c. with-repos missing repo names"
 	@echo "---------------------------------"
-	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx with-repos' 2>&1 | rg -F "Error: __gitx_present_usage_gitx with-repos requires at least 1 repo name"
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx with-repos' 2>&1 | rg -F "Error: __gitx_present_usage_gitx with-repos requires at least 1 repo name" || exit 1
 	@echo "9d. no-repos missing path"
 	@echo "-------------------------"
-	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx no-repos' 2>&1 | rg -F "Error: __gitx_present_usage_gitx no-repos requires exactly 1 path argument"
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx no-repos' 2>&1 | rg -F "Error: __gitx_present_usage_gitx no-repos requires exactly 1 path argument" || exit 1
 	@echo "9e. no-repos extra arg"
 	@echo "----------------------"
-	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx no-repos /tmp extra' 2>&1 | rg -F "Error: __gitx_present_usage_gitx no-repos requires exactly 1 path argument"
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx no-repos /tmp extra' 2>&1 | rg -F "Error: __gitx_present_usage_gitx no-repos requires exactly 1 path argument" || exit 1
 	@echo "9f. missing-repos-dir wrong arity"
 	@echo "---------------------------------"
-	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx missing-repos-dir' 2>&1 | rg -F "Error: __gitx_present_usage_gitx missing-repos-dir requires exactly 1 path argument"
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx missing-repos-dir' 2>&1 | rg -F "Error: __gitx_present_usage_gitx missing-repos-dir requires exactly 1 path argument" || exit 1
 	@echo "9g. no-git-args wrong arity"
 	@echo "---------------------------"
-	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx no-git-args' 2>&1 | rg -F "Error: __gitx_present_usage_gitx no-git-args requires exactly 1 repo name argument"
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx no-git-args' 2>&1 | rg -F "Error: __gitx_present_usage_gitx no-git-args requires exactly 1 repo name argument" || exit 1
+	@echo ""
+	@echo "  ✓ All usage gitx presenter contract tests passed"
 
 setup-fish:
 	@command -v fish >/dev/null 2>&1 || { echo "Installing fish shell..."; sudo apt-get update -qq && sudo apt-get install -y -qq fish > /dev/null 2>&1; }
