@@ -11,7 +11,7 @@ You can use it to version anything, but a very common use is for things like:
 - Tool configs
   - `~/.config/opencode/opencode.json*` (OpenCode CLI)
   - `~/.codex/config.toml` (OpenAI Codex CLI)
-  - `~/.claude/settings.json` (Claude Code CLI)
+  - `~/.claude.json` (Claude Code CLI)
   - `~/Library/Application Support/JetBrains/**/keymaps/*` (JetBrains IDEs)
 - `.env` files
   - `~/**/.env`
@@ -80,7 +80,7 @@ gitx-init    --dry-run <repo> [remote-url]     # Create/setup repo
 gitx-track   --dry-run <repo> <glob> [glob-n]  # Start tracking files
 gitx-untrack --dry-run <repo> <glob> [glob-n]  # Stop tracking files
 gitx-commit  --dry-run <repo> [-m "<message>"] # Commit tracked changes
-gitx-autosync --dry-run on [--every <duration>] [--repo <name> ...] # Configure periodic commit+push
+gitx-autosync --dry-run on [--every <duration>] [--repo <name> ...] # Configure periodic commit + push
 gitx-autosync --dry-run off                    # Disable periodic sync
 gitx-autosync --dry-run status                 # Show periodic sync status
 gitx                   <repo> <git-args...>    # Run raw git command for one repo
@@ -89,7 +89,7 @@ gitx                          <git-args...>    # Run raw git command across all 
 
 Remove `--dry-run` to actually execute the commands.
 
-Every command in this README has Fish auto-completion, including repo names, command modes, flags, and common values (for example `gitx-autosync` mode aliases and `--every` interval suggestions).
+Every `gitx` command includes Fish auto-completion. Command modes, flags, common values (e.g., `gitx-autosync` mode aliases and `--every` interval suggestions) and even dynamic values such as the `gitx` repo names you'll create.
 
 ## Basic workflow
 
