@@ -364,6 +364,17 @@ function gitx-autosync --description 'Enable, disable, or check periodic gitx co
 
         __gitx_autosync_write_config "$config_path" 1 "$every" "$scope" "$repos_csv" "$backend"
         or begin
+            if test "$backend" = "launchd"
+                set -l uid (command id -u)
+                command launchctl disable "gui/$uid/com.gitx.autosync" >/dev/null 2>/dev/null
+                command launchctl bootout "gui/$uid/com.gitx.autosync" >/dev/null 2>/dev/null
+            else
+                set -l timer_path "$HOME/.config/systemd/user/gitx-autosync.timer"
+                if test -f "$timer_path"
+                    command systemctl --user disable --now gitx-autosync.timer >/dev/null 2>/dev/null
+                end
+            end
+
             __gitx_present_problem "gitx-autosync" "-" 0 "Failed to write autosync config" "$config_path"
             return 1
         end
@@ -406,10 +417,13 @@ function gitx-autosync --description 'Enable, disable, or check periodic gitx co
                 end
             end
         else
-            command systemctl --user disable --now gitx-autosync.timer >/dev/null 2>/dev/null
-            or begin
-                __gitx_present_problem "gitx-autosync" "-" 0 "Failed to disable systemd user timer" "gitx-autosync.timer"
-                return 1
+            set -l timer_path "$HOME/.config/systemd/user/gitx-autosync.timer"
+            if test -f "$timer_path"
+                command systemctl --user disable --now gitx-autosync.timer >/dev/null 2>/dev/null
+                or begin
+                    __gitx_present_problem "gitx-autosync" "-" 0 "Failed to disable systemd user timer" "gitx-autosync.timer"
+                    return 1
+                end
             end
         end
 

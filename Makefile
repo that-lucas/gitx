@@ -4,7 +4,7 @@ demo-presenters: demo-all-presenters
 
 demo-all-presenters: setup-fish demo-init-presenter demo-track-presenter demo-untrack-presenter demo-commit-presenter demo-autosync-presenter demo-passthrough-presenter demo-problem-presenter demo-usage-presenter
 
-test-all-presenters: setup-fish demo-all-presenters test-presenter-contracts
+test-all-presenters: setup-fish demo-all-presenters test-presenter-contracts test-autosync-command-behavior
 	@echo ""
 	@echo "✓ All tests passed successfully"
 
@@ -320,6 +320,15 @@ test-autosync-command-behavior: setup-fish
 	command printf '%s\n' 'enabled=1' 'every=1m' 'scope=selected' 'repos=' 'backend=launchd' > "$$tmpdir/.gitx/autosync/config" && \
 	command chmod +x "$$tmpdir/bin/uname" "$$tmpdir/bin/launchctl" && \
 	HOME="$$tmpdir" PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync status' 2>&1 | rg -F "Invalid autosync config" || { command rm -rf "$$tmpdir"; exit 1; } && \
+	command rm -rf "$$tmpdir"
+	@echo "12g. off succeeds on Linux before first on"
+	@echo "------------------------------------------"
+	@tmpdir=$$(mktemp -d) && \
+	command mkdir -p "$$tmpdir/bin" && \
+	command printf '%s\n' '#!/usr/bin/env bash' 'echo Linux' > "$$tmpdir/bin/uname" && \
+	command printf '%s\n' '#!/usr/bin/env bash' 'if [ "$$1" = "--user" ] && [ "$$2" = "show-environment" ]; then exit 0; fi' 'if [ "$$1" = "--user" ] && [ "$$2" = "disable" ]; then exit 42; fi' 'exit 0' > "$$tmpdir/bin/systemctl" && \
+	command chmod +x "$$tmpdir/bin/uname" "$$tmpdir/bin/systemctl" && \
+	HOME="$$tmpdir" PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync off' 2>&1 | rg -F "Autosync disabled" || { command rm -rf "$$tmpdir"; exit 1; } && \
 	command rm -rf "$$tmpdir"
 	@echo ""
 	@echo "  ✓ Autosync command behavior checks passed"
