@@ -4,8 +4,7 @@ demo-presenters: demo-all-presenters
 
 demo-all-presenters: setup-fish demo-init-presenter demo-track-presenter demo-untrack-presenter demo-commit-presenter demo-autosync-presenter demo-passthrough-presenter demo-problem-presenter demo-usage-presenter
 
-test-all-presenters: setup-fish demo-all-presenters test-presenter-contracts test-autosync-command-behavior
-	@echo ""
+test-all-presenters: setup-fish test-presenter-contracts test-autosync-command-behavior
 	@echo "✓ All tests passed successfully"
 
 demo-init-presenter: setup-fish
@@ -197,142 +196,75 @@ demo-usage-presenter: setup-fish
 test-presenter-contracts: setup-fish test-passthrough-presenter-contracts test-usage-gitx-presenter-contracts test-autosync-presenter-contracts
 
 test-passthrough-presenter-contracts: setup-fish
-	@echo "9. PASSTHROUGH PRESENTER CONTRACTS"
-	@echo "9a. Missing mode argument"
-	@echo "-------------------------"
-	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough' 2>&1 | rg -F "Error: __gitx_present_passthrough requires at least 1 argument" || exit 1
-	@echo "9b. Unknown mode"
-	@echo "----------------"
-	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough invalid-mode' 2>&1 | rg -F "Error: __gitx_present_passthrough unknown mode: invalid-mode" || exit 1
-	@echo "9c. begin with extra args"
-	@echo "-------------------------"
-	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough begin extra' 2>&1 | rg -F "Error: __gitx_present_passthrough begin takes no extra arguments" || exit 1
-	@echo "9d. entry-start missing repo"
-	@echo "----------------------------"
-	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough entry-start' 2>&1 | rg -F "Error: __gitx_present_passthrough entry-start requires exactly 1 argument" || exit 1
-	@echo "9e. entry-end missing args"
-	@echo "--------------------------"
-	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough entry-end' 2>&1 | rg -F "Error: __gitx_present_passthrough entry-end requires exactly 2 arguments" || exit 1
-	@echo "9f. entry-end invalid success"
-	@echo "-----------------------------"
-	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough entry-end 2 demo-repo' 2>&1 | rg -F "Error: __gitx_present_passthrough entry-end success must be 0 or 1" || exit 1
-	@echo ""
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough' 2>&1 | rg -Fq "Error: __gitx_present_passthrough requires at least 1 argument" || exit 1
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough invalid-mode' 2>&1 | rg -Fq "Error: __gitx_present_passthrough unknown mode: invalid-mode" || exit 1
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough begin extra' 2>&1 | rg -Fq "Error: __gitx_present_passthrough begin takes no extra arguments" || exit 1
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough entry-start' 2>&1 | rg -Fq "Error: __gitx_present_passthrough entry-start requires exactly 1 argument" || exit 1
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough entry-end' 2>&1 | rg -Fq "Error: __gitx_present_passthrough entry-end requires exactly 2 arguments" || exit 1
+	@fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passthrough entry-end 2 demo-repo' 2>&1 | rg -Fq "Error: __gitx_present_passthrough entry-end success must be 0 or 1" || exit 1
 	@echo "  ✓ All passthrough presenter contract tests passed"
 
 test-usage-gitx-presenter-contracts: setup-fish
-	@echo "10. USAGE GITX PRESENTER CONTRACTS"
-	@echo "10a. Missing mode argument"
-	@echo "-------------------------"
-	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx' 2>&1 | rg -F "Error: __gitx_present_usage_gitx requires at least 1 argument" || exit 1
-	@echo "10b. Unknown mode"
-	@echo "----------------"
-	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx bad-mode' 2>&1 | rg -F "Error: __gitx_present_usage_gitx unknown mode: bad-mode" || exit 1
-	@echo "10c. with-repos missing repo names"
-	@echo "---------------------------------"
-	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx with-repos' 2>&1 | rg -F "Error: __gitx_present_usage_gitx with-repos requires at least 1 repo name" || exit 1
-	@echo "10d. no-repos missing path"
-	@echo "-------------------------"
-	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx no-repos' 2>&1 | rg -F "Error: __gitx_present_usage_gitx no-repos requires exactly 1 path argument" || exit 1
-	@echo "10e. no-repos extra arg"
-	@echo "----------------------"
-	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx no-repos /tmp extra' 2>&1 | rg -F "Error: __gitx_present_usage_gitx no-repos requires exactly 1 path argument" || exit 1
-	@echo "10f. missing-repos-dir wrong arity"
-	@echo "---------------------------------"
-	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx missing-repos-dir' 2>&1 | rg -F "Error: __gitx_present_usage_gitx missing-repos-dir requires exactly 1 path argument" || exit 1
-	@echo "10g. no-git-args wrong arity"
-	@echo "---------------------------"
-	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx no-git-args' 2>&1 | rg -F "Error: __gitx_present_usage_gitx no-git-args requires exactly 1 repo name argument" || exit 1
-	@echo ""
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx' 2>&1 | rg -Fq "Error: __gitx_present_usage_gitx requires at least 1 argument" || exit 1
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx bad-mode' 2>&1 | rg -Fq "Error: __gitx_present_usage_gitx unknown mode: bad-mode" || exit 1
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx with-repos' 2>&1 | rg -Fq "Error: __gitx_present_usage_gitx with-repos requires at least 1 repo name" || exit 1
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx no-repos' 2>&1 | rg -Fq "Error: __gitx_present_usage_gitx no-repos requires exactly 1 path argument" || exit 1
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx no-repos /tmp extra' 2>&1 | rg -Fq "Error: __gitx_present_usage_gitx no-repos requires exactly 1 path argument" || exit 1
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx missing-repos-dir' 2>&1 | rg -Fq "Error: __gitx_present_usage_gitx missing-repos-dir requires exactly 1 path argument" || exit 1
+	@fish -c 'source functions/__gitx_present_usage_gitx.fish; __gitx_present_usage_gitx no-git-args' 2>&1 | rg -Fq "Error: __gitx_present_usage_gitx no-git-args requires exactly 1 repo name argument" || exit 1
 	@echo "  ✓ All usage gitx presenter contract tests passed"
 
 test-autosync-presenter-contracts: setup-fish
-	@echo "11. AUTOSYNC PRESENTER CONTRACTS"
-	@echo "11a. Missing mode argument"
-	@echo "--------------------------"
-	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync' 2>&1 | rg -F "Error: __gitx_present_autosync requires at least 1 argument" || exit 1
-	@echo "11b. Unknown mode"
-	@echo "-----------------"
-	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync invalid-mode' 2>&1 | rg -F "Error: __gitx_present_autosync unknown mode: invalid-mode" || exit 1
-	@echo "11c. on missing arguments"
-	@echo "-------------------------"
-	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync on' 2>&1 | rg -F "Error: __gitx_present_autosync on requires at least 4 arguments after mode" || exit 1
-	@echo "11d. on invalid dry_run"
-	@echo "-----------------------"
-	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync on 2 launchd 15m all' 2>&1 | rg -F "Error: __gitx_present_autosync on dry_run must be 0 or 1" || exit 1
-	@echo "11e. off wrong arity"
-	@echo "--------------------"
-	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync off 1' 2>&1 | rg -F "Error: __gitx_present_autosync off requires exactly 2 arguments after mode" || exit 1
-	@echo "11f. status missing arguments"
-	@echo "-----------------------------"
-	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync status 0 launchd 1 1 15m' 2>&1 | rg -F "Error: __gitx_present_autosync status requires at least 6 arguments after mode" || exit 1
-	@echo "11g. status invalid enabled"
-	@echo "---------------------------"
-	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync status 0 launchd 2 1 15m all' 2>&1 | rg -F "Error: __gitx_present_autosync status enabled must be 0 or 1" || exit 1
-	@echo "11h. status invalid active"
-	@echo "--------------------------"
-	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync status 0 launchd 1 2 15m all' 2>&1 | rg -F "Error: __gitx_present_autosync status active must be 0 or 1" || exit 1
-	@echo "11i. status warns on active while disabled"
-	@echo "------------------------------------------"
-	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync status 0 launchd 0 1 15m all' 2>&1 | rg -F "Active while disabled." || exit 1
-	@echo ""
+	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync' 2>&1 | rg -Fq "Error: __gitx_present_autosync requires at least 1 argument" || exit 1
+	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync invalid-mode' 2>&1 | rg -Fq "Error: __gitx_present_autosync unknown mode: invalid-mode" || exit 1
+	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync on' 2>&1 | rg -Fq "Error: __gitx_present_autosync on requires at least 4 arguments after mode" || exit 1
+	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync on 2 launchd 15m all' 2>&1 | rg -Fq "Error: __gitx_present_autosync on dry_run must be 0 or 1" || exit 1
+	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync off 1' 2>&1 | rg -Fq "Error: __gitx_present_autosync off requires exactly 2 arguments after mode" || exit 1
+	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync status 0 launchd 1 1 15m' 2>&1 | rg -Fq "Error: __gitx_present_autosync status requires at least 6 arguments after mode" || exit 1
+	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync status 0 launchd 2 1 15m all' 2>&1 | rg -Fq "Error: __gitx_present_autosync status enabled must be 0 or 1" || exit 1
+	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync status 0 launchd 1 2 15m all' 2>&1 | rg -Fq "Error: __gitx_present_autosync status active must be 0 or 1" || exit 1
+	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync status 0 launchd 0 1 15m all' 2>&1 | rg -Fq "Active while disabled." || exit 1
 	@echo "  ✓ All autosync presenter contract tests passed"
 
 test-autosync-command-behavior: setup-fish
-	@echo "12. AUTOSYNC COMMAND BEHAVIOR"
-	@echo "12a. Invalid --every rejects unsupported units"
-	@echo "----------------------------------------------"
-	@fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync on --every 30s' 2>&1 | rg -F "Invalid --every value" || exit 1
-	@echo "12b. --all is rejected as unknown flag"
-	@echo "--------------------------------------"
-	@fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync on --all' 2>&1 | rg -F -- "--all: unknown option" || exit 1
-	@echo "12c. Linux hard-fail when systemd --user unavailable"
-	@echo "----------------------------------------------------"
+	@fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync on --every 30s' 2>&1 | rg -Fq "Invalid --every value" || exit 1
+	@fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync on --all' 2>&1 | rg -Fq -- "--all: unknown option" || exit 1
 	@tmpdir=$$(mktemp -d) && \
 	command mkdir -p "$$tmpdir/bin" && \
 	command printf '%s\n' '#!/usr/bin/env bash' 'echo Linux' > "$$tmpdir/bin/uname" && \
 	command printf '%s\n' '#!/usr/bin/env bash' 'if [ "$$1" = "--user" ] && [ "$$2" = "show-environment" ]; then exit 1; fi' 'exit 0' > "$$tmpdir/bin/systemctl" && \
 	command chmod +x "$$tmpdir/bin/uname" "$$tmpdir/bin/systemctl" && \
-	PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync on' 2>&1 | rg -F "systemd --user is unavailable" || { command rm -rf "$$tmpdir"; exit 1; } && \
+	PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync on' 2>&1 | rg -Fq "systemd --user is unavailable" || { command rm -rf "$$tmpdir"; exit 1; } && \
 	command rm -rf "$$tmpdir"
-	@echo "12d. Repeated --repo values are all honored"
-	@echo "--------------------------------------------"
 	@tmpdir=$$(mktemp -d) && \
 	command mkdir -p "$$tmpdir/bin" "$$tmpdir/.gitx/repos/work/repo" "$$tmpdir/.gitx/repos/settings/repo" && \
 	command printf '%s\n' '#!/usr/bin/env bash' 'echo Darwin' > "$$tmpdir/bin/uname" && \
 	command chmod +x "$$tmpdir/bin/uname" && \
-	HOME="$$tmpdir" PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync on --dry-run --repo work --repo settings' 2>&1 | rg -F "work" || { command rm -rf "$$tmpdir"; exit 1; } && \
-	HOME="$$tmpdir" PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync on --dry-run --repo work --repo settings' 2>&1 | rg -F "settings" || { command rm -rf "$$tmpdir"; exit 1; } && \
+	HOME="$$tmpdir" PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync on --dry-run --repo work --repo settings' 2>&1 | rg -Fq "work" || { command rm -rf "$$tmpdir"; exit 1; } && \
+	HOME="$$tmpdir" PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync on --dry-run --repo work --repo settings' 2>&1 | rg -Fq "settings" || { command rm -rf "$$tmpdir"; exit 1; } && \
 	command rm -rf "$$tmpdir"
-	@echo "12e. off fails when launchd disable fails"
-	@echo "-----------------------------------------"
 	@tmpdir=$$(mktemp -d) && \
 	command mkdir -p "$$tmpdir/bin" && \
 	command printf '%s\n' '#!/usr/bin/env bash' 'echo Darwin' > "$$tmpdir/bin/uname" && \
 	command printf '%s\n' '#!/usr/bin/env bash' 'if [ "$$1" = "print" ]; then exit 1; fi' 'if [ "$$1" = "disable" ]; then exit 1; fi' 'if [ "$$1" = "print-disabled" ]; then exit 0; fi' 'exit 0' > "$$tmpdir/bin/launchctl" && \
 	command chmod +x "$$tmpdir/bin/uname" "$$tmpdir/bin/launchctl" && \
-	HOME="$$tmpdir" PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync off' 2>&1 | rg -F "Failed to disable launchd agent" || { command rm -rf "$$tmpdir"; exit 1; } && \
+	HOME="$$tmpdir" PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync off' 2>&1 | rg -Fq "Failed to disable launchd agent" || { command rm -rf "$$tmpdir"; exit 1; } && \
 	command rm -rf "$$tmpdir"
-	@echo "12f. status fails on invalid selected config"
-	@echo "--------------------------------------------"
 	@tmpdir=$$(mktemp -d) && \
 	command mkdir -p "$$tmpdir/bin" "$$tmpdir/.gitx/autosync" && \
 	command printf '%s\n' '#!/usr/bin/env bash' 'echo Darwin' > "$$tmpdir/bin/uname" && \
 	command printf '%s\n' '#!/usr/bin/env bash' 'if [ "$$1" = "print" ]; then exit 1; fi' 'if [ "$$1" = "print-disabled" ]; then exit 0; fi' 'exit 0' > "$$tmpdir/bin/launchctl" && \
 	command printf '%s\n' 'enabled=1' 'every=1m' 'scope=selected' 'repos=' 'backend=launchd' > "$$tmpdir/.gitx/autosync/config" && \
 	command chmod +x "$$tmpdir/bin/uname" "$$tmpdir/bin/launchctl" && \
-	HOME="$$tmpdir" PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync status' 2>&1 | rg -F "Invalid autosync config" || { command rm -rf "$$tmpdir"; exit 1; } && \
+	HOME="$$tmpdir" PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync status' 2>&1 | rg -Fq "Invalid autosync config" || { command rm -rf "$$tmpdir"; exit 1; } && \
 	command rm -rf "$$tmpdir"
-	@echo "12g. off succeeds on Linux before first on"
-	@echo "------------------------------------------"
 	@tmpdir=$$(mktemp -d) && \
 	command mkdir -p "$$tmpdir/bin" && \
 	command printf '%s\n' '#!/usr/bin/env bash' 'echo Linux' > "$$tmpdir/bin/uname" && \
 	command printf '%s\n' '#!/usr/bin/env bash' 'if [ "$$1" = "--user" ] && [ "$$2" = "show-environment" ]; then exit 0; fi' 'if [ "$$1" = "--user" ] && [ "$$2" = "disable" ]; then exit 42; fi' 'exit 0' > "$$tmpdir/bin/systemctl" && \
 	command chmod +x "$$tmpdir/bin/uname" "$$tmpdir/bin/systemctl" && \
-	HOME="$$tmpdir" PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync off' 2>&1 | rg -F "Autosync disabled" || { command rm -rf "$$tmpdir"; exit 1; } && \
+	HOME="$$tmpdir" PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync off' 2>&1 | rg -Fq "Autosync disabled" || { command rm -rf "$$tmpdir"; exit 1; } && \
 	command rm -rf "$$tmpdir"
-	@echo "12h. runner executes without loading user config"
-	@echo "-----------------------------------------------"
 	@tmpdir=$$(mktemp -d) && \
 	command mkdir -p "$$tmpdir/.config/fish/functions" "$$tmpdir/.gitx/autosync" && \
 	command printf '%s\n' 'command printf "%s\n" "loaded" > "$$HOME/config-loaded"' > "$$tmpdir/.config/fish/config.fish" && \
@@ -344,8 +276,6 @@ test-autosync-command-behavior: setup-fish
 	command test -f "$$tmpdir/runner-ran" || { command rm -rf "$$tmpdir"; exit 1; } && \
 	if command test -f "$$tmpdir/config-loaded"; then command rm -rf "$$tmpdir"; exit 1; fi && \
 	command rm -rf "$$tmpdir"
-	@echo "12i. log retention handles paths with spaces"
-	@echo "--------------------------------------------"
 	@tmpbase=$$(mktemp -d) && \
 	space_home="$$tmpbase/with space" && \
 	command mkdir -p "$$space_home/.config/fish/functions" "$$space_home/.gitx/autosync" && \
@@ -356,7 +286,6 @@ test-autosync-command-behavior: setup-fish
 	count=$$(command find "$$space_home/.gitx/autosync" -maxdepth 1 -type f -name "*.log" | wc -l | tr -d ' ') && \
 	test "$$count" -eq 30 || { command rm -rf "$$tmpbase"; exit 1; } && \
 	command rm -rf "$$tmpbase"
-	@echo ""
 	@echo "  ✓ Autosync command behavior checks passed"
 
 setup-fish:
