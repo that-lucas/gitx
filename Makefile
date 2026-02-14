@@ -331,6 +331,13 @@ test-autosync-command-behavior: setup-fish
 	command chmod +x "$$tmpdir/bin/uname" "$$tmpdir/bin/systemctl" && \
 	HOME="$$tmpdir" PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync off' 2>&1 | rg -F "Autosync disabled" || { command rm -rf "$$tmpdir"; exit 1; } && \
 	command rm -rf "$$tmpdir"
+	@echo "12h. runner avoids sourcing full fish config"
+	@echo "--------------------------------------------"
+	@tmpdir=$$(mktemp -d) && \
+	HOME="$$tmpdir" fish -c 'source functions/gitx-autosync.fish; __gitx_autosync_write_runner "$$HOME/.gitx/autosync/run.fish"' || { command rm -rf "$$tmpdir"; exit 1; } && \
+	rg -F "__gitx_autosync_run.fish" "$$tmpdir/.gitx/autosync/run.fish" >/dev/null || { command rm -rf "$$tmpdir"; exit 1; } && \
+	if rg -F "config.fish" "$$tmpdir/.gitx/autosync/run.fish" >/dev/null; then command rm -rf "$$tmpdir"; exit 1; fi && \
+	command rm -rf "$$tmpdir"
 	@echo ""
 	@echo "  ✓ Autosync command behavior checks passed"
 

@@ -75,10 +75,16 @@ function __gitx_autosync_write_runner --description 'Write autosync runner scrip
         'set -l autosync_dir "$HOME/.gitx/autosync"' \
         'command mkdir -p "$autosync_dir" >/dev/null 2>/dev/null' \
         'set -l log_path "$autosync_dir/"(command date +%Y%m%d)".log"' \
-        'if test -f "$HOME/.config/fish/config.fish"' \
-        '    source "$HOME/.config/fish/config.fish"' \
+        'if not functions -q __gitx_autosync_run' \
+        '    if test -f "$HOME/.config/fish/functions/__gitx_autosync_run.fish"' \
+        '        source "$HOME/.config/fish/functions/__gitx_autosync_run.fish"' \
+        '    end' \
         'end' \
-        '__gitx_autosync_run >> "$log_path" 2>&1' \
+        'if functions -q __gitx_autosync_run' \
+        '    __gitx_autosync_run >> "$log_path" 2>&1' \
+        'else' \
+        '    command printf "%s\n" "Error: __gitx_autosync_run function not found" >> "$log_path"' \
+        'end' \
         'set -l log_paths (command find "$autosync_dir" -maxdepth 1 -type f -name "*.log" 2>/dev/null)' \
         'if test (count $log_paths) -gt 30' \
         '    set -l sorted_log_paths (string split "\n" -- (command printf "%s\n" $log_paths | command sort))' \
