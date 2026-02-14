@@ -89,7 +89,7 @@ gitx                          <git-args...>    # Run raw git command across all 
 
 Remove `--dry-run` to actually execute the commands.
 
-Every `gitx` command includes Fish auto-completion. Command modes, flags, common values (e.g., `gitx-autosync` mode aliases and `--every` interval suggestions) and even dynamic values such as the `gitx` repo names you'll create.
+Every `gitx` command includes Fish auto-completion for command modes, flags, common values (for example `gitx-autosync` mode aliases and `--every` interval suggestions), and dynamic values such as the repo names you create with `gitx-init`.
 
 ## Basic workflow
 

@@ -14,7 +14,7 @@ function __gitx_present_autosync --description 'Presenter for gitx-autosync comm
     switch "$mode"
         case 'on'
             if test (count $argv) -lt 5
-                echo "Error: __gitx_present_autosync on requires at least 4 arguments" >&2
+                echo "Error: __gitx_present_autosync on requires at least 4 arguments after mode" >&2
                 return 1
             end
 
@@ -118,7 +118,7 @@ function __gitx_present_autosync --description 'Presenter for gitx-autosync comm
 
         case 'off'
             if test (count $argv) -ne 3
-                echo "Error: __gitx_present_autosync off requires exactly 2 arguments" >&2
+                echo "Error: __gitx_present_autosync off requires exactly 2 arguments after mode" >&2
                 return 1
             end
 
@@ -167,7 +167,7 @@ function __gitx_present_autosync --description 'Presenter for gitx-autosync comm
 
         case 'status'
             if test (count $argv) -lt 7
-                echo "Error: __gitx_present_autosync status requires at least 6 arguments" >&2
+                echo "Error: __gitx_present_autosync status requires at least 6 arguments after mode" >&2
                 return 1
             end
 

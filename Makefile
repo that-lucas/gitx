@@ -255,16 +255,16 @@ test-autosync-presenter-contracts: setup-fish
 	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync invalid-mode' 2>&1 | rg -F "Error: __gitx_present_autosync unknown mode: invalid-mode" || exit 1
 	@echo "11c. on missing arguments"
 	@echo "-------------------------"
-	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync on' 2>&1 | rg -F "Error: __gitx_present_autosync on requires at least 4 arguments" || exit 1
+	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync on' 2>&1 | rg -F "Error: __gitx_present_autosync on requires at least 4 arguments after mode" || exit 1
 	@echo "11d. on invalid dry_run"
 	@echo "-----------------------"
 	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync on 2 launchd 15m all' 2>&1 | rg -F "Error: __gitx_present_autosync on dry_run must be 0 or 1" || exit 1
 	@echo "11e. off wrong arity"
 	@echo "--------------------"
-	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync off 1' 2>&1 | rg -F "Error: __gitx_present_autosync off requires exactly 2 arguments" || exit 1
+	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync off 1' 2>&1 | rg -F "Error: __gitx_present_autosync off requires exactly 2 arguments after mode" || exit 1
 	@echo "11f. status missing arguments"
 	@echo "-----------------------------"
-	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync status 0 launchd 1 1 15m' 2>&1 | rg -F "Error: __gitx_present_autosync status requires at least 6 arguments" || exit 1
+	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync status 0 launchd 1 1 15m' 2>&1 | rg -F "Error: __gitx_present_autosync status requires at least 6 arguments after mode" || exit 1
 	@echo "11g. status invalid enabled"
 	@echo "---------------------------"
 	@fish -c 'source functions/__gitx_present_autosync.fish; __gitx_present_autosync status 0 launchd 2 1 15m all' 2>&1 | rg -F "Error: __gitx_present_autosync status enabled must be 0 or 1" || exit 1
