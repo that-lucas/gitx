@@ -11,7 +11,7 @@ You can use it to version anything, but a very common use is for things like:
 - Tool configs
   - `~/.config/opencode/opencode.json*` (OpenCode CLI)
   - `~/.codex/config.toml` (OpenAI Codex CLI)
-  - `~/.claude/settings.json` (Claude Code CLI)
+  - `~/.claude.json` (Claude Code CLI)
   - `~/Library/Application Support/JetBrains/**/keymaps/*` (JetBrains IDEs)
 - `.env` files
   - `~/**/.env`
@@ -58,13 +58,13 @@ source ~/.config/fish/config.fish
 2. Optional: For immediate command descriptions in completion menus, add this to `~/.config/fish/config.fish`:
 
 ```sh
-functions gitx gitx-init gitx-track gitx-untrack gitx-commit >/dev/null 2>/dev/null
+functions gitx gitx-init gitx-track gitx-untrack gitx-commit gitx-autosync >/dev/null 2>/dev/null
 ```
 
 and reload with `source ~/.config/fish/config.fish` or simply run
 
 ```sh
-echo 'functions gitx gitx-init gitx-track gitx-untrack gitx-commit >/dev/null 2>/dev/null' >> ~/.config/fish/config.fish
+echo 'functions gitx gitx-init gitx-track gitx-untrack gitx-commit gitx-autosync >/dev/null 2>/dev/null' >> ~/.config/fish/config.fish
 
 source ~/.config/fish/config.fish
 ```
@@ -80,20 +80,52 @@ gitx-init    --dry-run <repo> [remote-url]     # Create/setup repo
 gitx-track   --dry-run <repo> <glob> [glob-n]  # Start tracking files
 gitx-untrack --dry-run <repo> <glob> [glob-n]  # Stop tracking files
 gitx-commit  --dry-run <repo> [-m "<message>"] # Commit tracked changes
+gitx-autosync --dry-run on [--every <duration>] [--repo <name> ...] # Configure periodic commit + push
+gitx-autosync --dry-run off                    # Disable periodic sync
+gitx-autosync --dry-run status                 # Show periodic sync status
 gitx                   <repo> <git-args...>    # Run raw git command for one repo
 gitx                          <git-args...>    # Run raw git command across all repos
 ```
 
 Remove `--dry-run` to actually execute the commands.
 
-There's auto-completion for repo names and for the `--dry-run` flag as well.
+Every `gitx` command includes Fish auto-completion for command modes, flags, common values (for example `gitx-autosync` mode aliases and `--every` interval suggestions), and dynamic values such as the repo names you create with `gitx-init`.
 
 ## Basic workflow
 
-1. Initialize a repo
-2. Track files you care about (and untrack those you don't want)
-3. Commit changes
-4. Push to remote
+- Initialize a repo
+- Track files you care about (and untrack those you don't want)
+  - Commit changes and, optionally, push to remote, or
+  - Set `gitx-autosync` to do it for you periodically
+
+## Autosync (every 15m by default)
+
+`gitx-autosync` runs `gitx-commit` and `gitx <repo> push` (if a remote is set) periodically.
+
+- `on|true|1`: enable autosync
+- `off|false|0`: disable autosync
+- `status`: show enabled/active state plus current config
+
+Examples:
+
+```sh
+# All repos every 15 minutes (default)
+gitx-autosync on
+
+# One or more repos every 2 hours
+gitx-autosync on --every 2h --repo configs --repo dotfiles
+
+# Disable autosync
+gitx-autosync off
+
+# Check current state
+gitx-autosync status
+```
+
+Platform backends:
+
+- macOS: `launchd` user agent
+- Linux: `systemd --user` timer/service
 
 ## Quick recipe (GitHub with `gh` CLI + `gitx`)
 
@@ -120,4 +152,4 @@ gitx-track  configs ~/**/*.env ~/**/*.env.*
 
 ## Autocomplete
 
-Fish completions are included for all `gitx` commands, including repo name completion from any repo you created with `gitx-init` and the `--dry-run` flag.
+Fish completions are included for all `gitx` commands and options: repo names from repos created with `gitx-init`, command modes/aliases (`on|true|1`, `off|false|0`, `status`), flags like `--dry-run`, `--repo`, `--message`, and common values such as `--every` interval suggestions.

@@ -172,6 +172,9 @@ README.md
 - Treat PR creation as the review gate; do not merge before review feedback.
 - After review, address comments with follow-up commits on the same branch.
 - Re-run relevant tests after each review-driven update before pushing again.
+- Always follow explicit instructions left by the user/repo owner on code review comments.
+- Double-check reviewer claims before implementing: verify with docs and/or local reproduction first.
+- Never blindly apply reviewer suggestions; if a claim is incorrect, explain why in the PR discussion and keep behavior correct.
 
 ## Important Notes
 
