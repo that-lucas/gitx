@@ -146,7 +146,7 @@ function __gitx_autosync_write_systemd_units --description 'Write systemd user a
         '' \
         '[Service]' \
         'Type=oneshot' \
-        "ExecStart=/usr/bin/env $fish_path $runner_path" > "$service_path"
+        "ExecStart=/usr/bin/env \"$fish_path\" \"$runner_path\"" > "$service_path"
     or return 1
 
     command printf '%s\n' \

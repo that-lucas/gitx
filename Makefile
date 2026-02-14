@@ -290,8 +290,9 @@ test-autosync-command-behavior: setup-fish
 	@tmpdir=$$(mktemp -d) && \
 	command mkdir -p "$$tmpdir/bin" && \
 	command printf '%s\n' '#!/usr/bin/env bash' 'echo Linux' > "$$tmpdir/bin/uname" && \
-	command chmod +x "$$tmpdir/bin/uname" && \
-	PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync on' 2>&1 | rg -F "systemctl command not found" || { command rm -rf "$$tmpdir"; exit 1; } && \
+	command printf '%s\n' '#!/usr/bin/env bash' 'if [ "$$1" = "--user" ] && [ "$$2" = "show-environment" ]; then exit 1; fi' 'exit 0' > "$$tmpdir/bin/systemctl" && \
+	command chmod +x "$$tmpdir/bin/uname" "$$tmpdir/bin/systemctl" && \
+	PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync on' 2>&1 | rg -F "systemd --user is unavailable" || { command rm -rf "$$tmpdir"; exit 1; } && \
 	command rm -rf "$$tmpdir"
 	@echo "12d. Repeated --repo values are all honored"
 	@echo "--------------------------------------------"
