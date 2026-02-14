@@ -75,6 +75,14 @@ function __gitx_autosync_write_runner --description 'Write autosync runner scrip
         'set -l autosync_dir "$HOME/.gitx/autosync"' \
         'command mkdir -p "$autosync_dir" >/dev/null 2>/dev/null' \
         'set -l log_path "$autosync_dir/"(command date +%Y%m%d)".log"' \
+        'set -l user_functions "$HOME/.config/fish/functions"' \
+        'if test -d "$user_functions"' \
+        '    if set -q fish_function_path[1]' \
+        '        set -g fish_function_path "$user_functions" $fish_function_path' \
+        '    else' \
+        '        set -g fish_function_path "$user_functions"' \
+        '    end' \
+        'end' \
         'if not functions -q __gitx_autosync_run' \
         '    if test -f "$HOME/.config/fish/functions/__gitx_autosync_run.fish"' \
         '        source "$HOME/.config/fish/functions/__gitx_autosync_run.fish"' \

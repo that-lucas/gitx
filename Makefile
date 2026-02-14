@@ -336,7 +336,8 @@ test-autosync-command-behavior: setup-fish
 	@tmpdir=$$(mktemp -d) && \
 	command mkdir -p "$$tmpdir/.config/fish/functions" "$$tmpdir/.gitx/autosync" && \
 	command printf '%s\n' 'command printf "%s\n" "loaded" > "$$HOME/config-loaded"' > "$$tmpdir/.config/fish/config.fish" && \
-	command printf '%s\n' 'function __gitx_autosync_run' '    command printf "%s\n" "ran" > "$$HOME/runner-ran"' 'end' > "$$tmpdir/.config/fish/functions/__gitx_autosync_run.fish" && \
+	command printf '%s\n' 'function __gitx_autosync_run' '    gitx-commit' 'end' > "$$tmpdir/.config/fish/functions/__gitx_autosync_run.fish" && \
+	command printf '%s\n' 'function gitx-commit' '    command printf "%s\n" "ran" > "$$HOME/runner-ran"' 'end' > "$$tmpdir/.config/fish/functions/gitx-commit.fish" && \
 	HOME="$$tmpdir" fish --no-config -c 'source functions/gitx-autosync.fish; __gitx_autosync_write_runner "$$HOME/.gitx/autosync/run.fish"; __gitx_autosync_write_systemd_units "$$HOME/.config/systemd/user/gitx-autosync.service" "$$HOME/.config/systemd/user/gitx-autosync.timer" "$$HOME/.gitx/autosync/run.fish" "15m" "/usr/local/bin/fish"' || { command rm -rf "$$tmpdir"; exit 1; } && \
 	rg -F -- "--no-config" "$$tmpdir/.config/systemd/user/gitx-autosync.service" >/dev/null || { command rm -rf "$$tmpdir"; exit 1; } && \
 	HOME="$$tmpdir" fish --no-config "$$tmpdir/.gitx/autosync/run.fish" >/dev/null 2>/dev/null || { command rm -rf "$$tmpdir"; exit 1; } && \
