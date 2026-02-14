@@ -120,6 +120,7 @@ function __gitx_autosync_write_launchd_plist --description 'Write launchd autosy
         '    <array>' \
         '      <string>/usr/bin/env</string>' \
         "      <string>$fish_path</string>" \
+        '      <string>--no-config</string>' \
         "      <string>$runner_path</string>" \
         '    </array>' \
         "    <key>StartInterval</key><integer>$interval_seconds</integer>" \
@@ -152,7 +153,7 @@ function __gitx_autosync_write_systemd_units --description 'Write systemd user a
         '' \
         '[Service]' \
         'Type=oneshot' \
-        "ExecStart=/usr/bin/env \"$fish_path\" \"$runner_path\"" > "$service_path"
+        "ExecStart=/usr/bin/env \"$fish_path\" --no-config \"$runner_path\"" > "$service_path"
     or return 1
 
     command printf '%s\n' \

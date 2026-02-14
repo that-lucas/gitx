@@ -331,12 +331,17 @@ test-autosync-command-behavior: setup-fish
 	command chmod +x "$$tmpdir/bin/uname" "$$tmpdir/bin/systemctl" && \
 	HOME="$$tmpdir" PATH="$$tmpdir/bin:$$PATH" fish -c 'source functions/__gitx_present_usage.fish; source functions/__gitx_present_problem.fish; source functions/__gitx_present_autosync.fish; source functions/gitx-autosync.fish; gitx-autosync off' 2>&1 | rg -F "Autosync disabled" || { command rm -rf "$$tmpdir"; exit 1; } && \
 	command rm -rf "$$tmpdir"
-	@echo "12h. runner avoids sourcing full fish config"
-	@echo "--------------------------------------------"
+	@echo "12h. runner executes without loading user config"
+	@echo "-----------------------------------------------"
 	@tmpdir=$$(mktemp -d) && \
-	HOME="$$tmpdir" fish -c 'source functions/gitx-autosync.fish; __gitx_autosync_write_runner "$$HOME/.gitx/autosync/run.fish"' || { command rm -rf "$$tmpdir"; exit 1; } && \
-	rg -F "__gitx_autosync_run.fish" "$$tmpdir/.gitx/autosync/run.fish" >/dev/null || { command rm -rf "$$tmpdir"; exit 1; } && \
-	if rg -F "config.fish" "$$tmpdir/.gitx/autosync/run.fish" >/dev/null; then command rm -rf "$$tmpdir"; exit 1; fi && \
+	command mkdir -p "$$tmpdir/.config/fish/functions" "$$tmpdir/.gitx/autosync" && \
+	command printf '%s\n' 'command printf "%s\n" "loaded" > "$$HOME/config-loaded"' > "$$tmpdir/.config/fish/config.fish" && \
+	command printf '%s\n' 'function __gitx_autosync_run' '    command printf "%s\n" "ran" > "$$HOME/runner-ran"' 'end' > "$$tmpdir/.config/fish/functions/__gitx_autosync_run.fish" && \
+	HOME="$$tmpdir" fish --no-config -c 'source functions/gitx-autosync.fish; __gitx_autosync_write_runner "$$HOME/.gitx/autosync/run.fish"; __gitx_autosync_write_systemd_units "$$HOME/.config/systemd/user/gitx-autosync.service" "$$HOME/.config/systemd/user/gitx-autosync.timer" "$$HOME/.gitx/autosync/run.fish" "15m" "/usr/local/bin/fish"' || { command rm -rf "$$tmpdir"; exit 1; } && \
+	rg -F -- "--no-config" "$$tmpdir/.config/systemd/user/gitx-autosync.service" >/dev/null || { command rm -rf "$$tmpdir"; exit 1; } && \
+	HOME="$$tmpdir" fish --no-config "$$tmpdir/.gitx/autosync/run.fish" >/dev/null 2>/dev/null || { command rm -rf "$$tmpdir"; exit 1; } && \
+	command test -f "$$tmpdir/runner-ran" || { command rm -rf "$$tmpdir"; exit 1; } && \
+	if command test -f "$$tmpdir/config-loaded"; then command rm -rf "$$tmpdir"; exit 1; fi && \
 	command rm -rf "$$tmpdir"
 	@echo ""
 	@echo "  ✓ Autosync command behavior checks passed"
