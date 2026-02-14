@@ -93,9 +93,9 @@ function __gitx_autosync_write_runner --description 'Write autosync runner scrip
         'else' \
         '    command printf "%s\n" "Error: __gitx_autosync_run function not found" >> "$log_path"' \
         'end' \
-        'set -l log_paths (command find "$autosync_dir" -maxdepth 1 -type f -name "*.log" 2>/dev/null)' \
+        'set -l log_paths (command find "$autosync_dir" -maxdepth 1 -type f -name "*.log" -print0 2>/dev/null | string split0)' \
         'if test (count $log_paths) -gt 30' \
-        '    set -l sorted_log_paths (string split "\n" -- (command printf "%s\n" $log_paths | command sort))' \
+        '    set -l sorted_log_paths (string split "\n" -- (command printf "%s\n" -- $log_paths | command sort))' \
         '    set -l remove_count (math (count $sorted_log_paths) - 30)' \
         '    for old_log_path in $sorted_log_paths[1..$remove_count]' \
         '        command rm -f -- "$old_log_path" >/dev/null 2>/dev/null' \

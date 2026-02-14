@@ -344,6 +344,18 @@ test-autosync-command-behavior: setup-fish
 	command test -f "$$tmpdir/runner-ran" || { command rm -rf "$$tmpdir"; exit 1; } && \
 	if command test -f "$$tmpdir/config-loaded"; then command rm -rf "$$tmpdir"; exit 1; fi && \
 	command rm -rf "$$tmpdir"
+	@echo "12i. log retention handles paths with spaces"
+	@echo "--------------------------------------------"
+	@tmpbase=$$(mktemp -d) && \
+	space_home="$$tmpbase/with space" && \
+	command mkdir -p "$$space_home/.config/fish/functions" "$$space_home/.gitx/autosync" && \
+	for n in $$(seq -w 1 35); do command touch "$$space_home/.gitx/autosync/$$n.log"; done && \
+	command printf '%s\n' 'function __gitx_autosync_run' '    return 0' 'end' > "$$space_home/.config/fish/functions/__gitx_autosync_run.fish" && \
+	HOME="$$space_home" fish --no-config -c 'source functions/gitx-autosync.fish; __gitx_autosync_write_runner "$$HOME/.gitx/autosync/run.fish"' || { command rm -rf "$$tmpbase"; exit 1; } && \
+	HOME="$$space_home" fish --no-config "$$space_home/.gitx/autosync/run.fish" >/dev/null 2>/dev/null || { command rm -rf "$$tmpbase"; exit 1; } && \
+	count=$$(command find "$$space_home/.gitx/autosync" -maxdepth 1 -type f -name "*.log" | wc -l | tr -d ' ') && \
+	test "$$count" -eq 30 || { command rm -rf "$$tmpbase"; exit 1; } && \
+	command rm -rf "$$tmpbase"
 	@echo ""
 	@echo "  ✓ Autosync command behavior checks passed"
 
