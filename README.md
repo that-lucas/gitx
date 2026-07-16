@@ -18,14 +18,16 @@ You can use it to version anything, but a very common use is for things like:
   - `~/**/.env.*`
 - Any other files you want to keep track but don't want to keep copying to another path
 
+`gitx-track` accepts files, not directories. Use shell globs to select files within a directory, for example `~/.config/fish/**/*.fish`.
+
 The secret sauce is bare git repos under `~/.gitx/repos/<repo>/repo`, with `/` as the work tree.
 
 - You can create **unlimited** repos tracking different things and even track **the same file in different repos**
 - You can track anything anywhere in your machine, even outside your `$HOME` profile, i.e., `/etc/hosts`
 
-## Single requirement
+## Requirements
 
-You'll need some [fish 🐠](https://fishshell.com/)
+You'll need some [fish 🐠](https://fishshell.com/) and Git.
 
 #### macOS
 ```sh
@@ -71,7 +73,7 @@ source ~/.config/fish/config.fish
 
 ## Start with `--dry-run`
 
-Dry run shows you exactly what will happen if you run the same command without the flag. It's a great way to get familiar with the commands and understand their effects.
+Dry run previews the files and configuration that the command intends to change without making those changes. Execution can still fail later because of permissions, Git state, or scheduler availability.
 
 ### Command summary
 
@@ -139,8 +141,10 @@ or manually at https://github.com/new, then
 gitx-init   configs git@github.com:your-user/configs.git           # Initialize configs repo
 gitx-track  configs ~/.gitconfig ~/.config/opencode/opencode.jsonc # Track a few files
 gitx-commit configs                                                # Optional message [-m "Tracking local configs"] # Commit
-gitx        configs push                                           # Push
+gitx        configs push -u origin main                            # First push; replace main if needed
 ```
+
+The initial branch name depends on your Git `init.defaultBranch` configuration. After the upstream is established, `gitx configs push` is enough.
 
 ## Globs
 
@@ -153,3 +157,7 @@ gitx-track  configs ~/**/*.env ~/**/*.env.*
 ## Autocomplete
 
 Fish completions are included for all `gitx` commands and options: repo names from repos created with `gitx-init`, command modes/aliases (`on|true|1`, `off|false|0`, `status`), flags like `--dry-run`, `--repo`, `--message`, and common values such as `--every` interval suggestions.
+
+## Operational caution
+
+`gitx` exposes unrestricted Git commands with `/` as the work tree. Commands that modify the work tree, such as `checkout` or `reset --hard`, can overwrite live files. Use raw Git commands through `gitx` with the same care you would use inside a conventional checkout.

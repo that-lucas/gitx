@@ -7,7 +7,7 @@
 - Language: Fish shell scripts (`.fish`)
 - Runtime: interpreted (no compile/build step)
 - Repo model: bare repos under `~/.gitx/repos/<repo>/repo`, work tree `/`
-- Main commands: `gitx`, `gitx-init`, `gitx-track`, `gitx-untrack`, `gitx-commit`
+- Main commands: `gitx`, `gitx-init`, `gitx-track`, `gitx-untrack`, `gitx-commit`, `gitx-autosync`
 
 ## Build, Test, and Dev Commands
 
@@ -20,8 +20,10 @@ make test-presenter-contracts
 # Targeted suites
 make test-passthrough-presenter-contracts
 make test-usage-gitx-presenter-contracts
+make test-autosync-presenter-contracts
+make test-autosync-command-behavior
 
-# Full run (very verbose: demos + contracts)
+# Full behavioral gate
 make test-all-presenters
 
 # Visual/demo output only
@@ -30,6 +32,7 @@ make demo-init-presenter
 make demo-track-presenter
 make demo-untrack-presenter
 make demo-commit-presenter
+make demo-autosync-presenter
 make demo-passthrough-presenter
 make demo-problem-presenter
 make demo-usage-presenter
@@ -39,9 +42,12 @@ make demo-usage-presenter
 
 - `make test-passthrough-presenter-contracts`: Runs only passthrough presenter contract assertions.
 - `make test-usage-gitx-presenter-contracts`: Runs only usage presenter contract assertions.
-- `make test-presenter-contracts`: Runs both contract suites; use as the default fast gate.
-- `make test-all-presenters`: Runs demos plus contract suites; use for end-to-end confidence when presenter output changes.
-- Rule of thumb: run targeted suite(s) first, then `make test-presenter-contracts`, and only run `make test-all-presenters` when broad output/presenter behavior changed.
+- `make test-autosync-presenter-contracts`: Runs only autosync presenter contract assertions.
+- `make test-autosync-command-behavior`: Runs autosync command and scheduler behavior checks.
+- `make test-presenter-contracts`: Runs all three presenter contract suites; use as the default fast gate.
+- `make test-all-presenters`: Runs all presenter contracts plus autosync command behavior checks.
+- `make demo-presenters`: Runs every visual presenter demo, including autosync.
+- Rule of thumb: run targeted suite(s) first, then `make test-presenter-contracts`; run `make test-all-presenters` when autosync behavior or broad command output changed.
 
 ### Single Test Execution
 
@@ -57,11 +63,13 @@ fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passth
 
 ### Test Output Expectations
 
-- `make test-all-presenters` is intentionally noisy because it includes all demo presenters.
+- `make demo-presenters` is intentionally noisy because it includes all visual presenter demos.
 - Contract tests are strict assertions (`rg -F ... || exit 1`) and fail the target on mismatch.
 - Success markers at the end:
   - `✓ All passthrough presenter contract tests passed`
   - `✓ All usage gitx presenter contract tests passed`
+  - `✓ All autosync presenter contract tests passed`
+  - `✓ Autosync command behavior checks passed`
   - `✓ All tests passed successfully`
 - On failure, `make` prints `Error 1` and exits non-zero.
 
@@ -118,12 +126,14 @@ fish -c 'source functions/__gitx_present_passthrough.fish; __gitx_present_passth
   - `gitx-track`: Add files to a gitx repo so they start being tracked
   - `gitx-untrack`: Stop tracking files from a gitx repo
   - `gitx-commit`: Commit files changed - if any - with an optional message
+  - `gitx-autosync`: Enable, disable, or check periodic gitx commit and push
 
 - Current dry-run descriptions:
   - `gitx-init --dry-run`: Preview what would happen without making changes
   - `gitx-track --dry-run`: Preview which files would be tracked
   - `gitx-untrack --dry-run`: Preview which files would stop being tracked
   - `gitx-commit --dry-run`: Preview what would be committed
+  - `gitx-autosync --dry-run`: Preview autosync configuration changes
 
 ## Key Patterns to Follow
 
@@ -142,6 +152,9 @@ functions/
   gitx-track.fish
   gitx-untrack.fish
   gitx-commit.fish
+  gitx-autosync.fish
+  __gitx_autosync_load_config.fish
+  __gitx_autosync_run.fish
   __gitx_present_*.fish
 completions/
   *.fish
@@ -162,7 +175,9 @@ README.md
 - Treat presenter/output wording changes as user-facing changes; keep them isolated from logic changes when possible.
 - Before pushing, run relevant test gates for touched areas:
   - Minimum: `make test-presenter-contracts`
-  - If presenter output changed: run targeted suite(s) and consider `make test-all-presenters` for end-to-end confidence.
+  - If autosync behavior changed: run `make test-autosync-command-behavior`, then `make test-all-presenters`.
+  - If presenter output changed: run the relevant targeted presenter suite, then `make test-presenter-contracts`.
+  - If init, track, untrack, commit, or raw Git dispatch behavior changed: add isolated manual or integration verification because those commands do not currently have dedicated behavioral suites.
 
 ## Development Workflow (Required)
 
